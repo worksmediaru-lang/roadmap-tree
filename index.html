@@ -10,7 +10,7 @@
 <title>Roadmap Tree — планировщик проектов AI-команды</title>
 <style>
 :root{
-  --bg:#7b818b;
+  --bg:#4a5060;
   --bg-2:#f4f5f7;
   --ink:#1f2430;
   --ink-2:#5b6474;
@@ -47,7 +47,7 @@ input,textarea,select{font-family:inherit}
   position:sticky;top:0;z-index:60;
   display:flex;align-items:center;gap:14px;
   padding:12px 20px;
-  background:rgba(114,120,130,.94);
+  background:rgba(48,53,68,.97);
   backdrop-filter:saturate(180%) blur(18px);
   border-bottom:1px solid rgba(20,26,40,.16);
 }
@@ -361,7 +361,7 @@ body.dragging .drag-hint{display:block}
   .btn,.btn.sm,.btn.primary,.btn.ghost.sm{padding:8px 10px;font-size:11.5px;min-height:34px}
   .select{min-width:0;flex:1 1 120px;padding:8px 10px;font-size:12px;min-height:34px}
   .spacer{display:none}
-  .userchip{font-size:10.5px;padding:3px 7px 3px 3px}
+  .userchip{font-size:10.5px;padding:3px 7px 3px 3px;max-width:160px;overflow:hidden}
   .userchip img{width:19px;height:19px}
   .userchip button{padding:3px 7px;font-size:9.5px}
   .syncpill{font-size:10px;padding:4px 8px}
@@ -502,6 +502,68 @@ mark.hl{background:rgba(91,124,250,.28);border-radius:3px;padding:0 2px;color:in
 /* ═══ REDUCED MOTION ═══ */
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{
   animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ═══ УРОВНЕВЫЕ ЦВЕТА КАРТОЧЕК (пастельные) ═══ */
+.card.lv0{background:#f0f4ff;border-color:#c8d4f7}   /* голубой  — корень  */
+.card.lv1{background:#f0f9f4;border-color:#b8dfc8}   /* зелёный  — 2й ур  */
+.card.lv2{background:#fdf7ee;border-color:#e8d4a8}   /* жёлтый   — 3й ур  */
+.card.lv3{background:#fdf0f5;border-color:#e8bece}   /* розовый  — 4й ур  */
+.card.lv4{background:#f4f0fd;border-color:#ccc0ee}   /* фиолетовый — 5й ур */
+.card.lv5{background:#f0f8fd;border-color:#b4d8ee}   /* циановый — 6й ур  */
+/* Готово всегда серо-зелёный поверх уровня */
+.card[data-status="done"]{background:#f0faf4!important;border-color:#b2d8be!important;
+  opacity:.82;filter:saturate(.35)}
+/* Просроченные — красная рамка */
+.card.overdue{border-color:#ef6c6c!important;
+  box-shadow:0 0 0 2px rgba(239,108,108,.13),var(--shadow-s)!important;
+  opacity:1!important;filter:none!important}
+
+/* Имя пользователя — обрезаем если не влезает */
+.userchip{max-width:180px}
+.userchip span#uName{max-width:90px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;display:inline-block;vertical-align:middle}
+
+#btnNewProject{white-space:nowrap;flex-shrink:0}
+
+/* Поиск внутри overflow menu */
+.ovf-search{padding:8px 12px 10px;border-top:1px solid rgba(20,26,40,.07)}
+.ovf-search input{width:100%;padding:7px 28px 7px 10px;border-radius:9px;
+  border:1px solid rgba(20,26,40,.14);background:#f4f5f7;font-size:13px;
+  font-family:inherit;outline:none;box-sizing:border-box;color:#1f2430}
+.ovf-search input:focus{border-color:#4f6bed;background:#fff;
+  box-shadow:0 0 0 3px rgba(79,107,237,.12)}
+.ovf-search{position:relative}
+.srch-clear{position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:#8b93a4;font-size:15px;
+  line-height:1;padding:2px;display:none}
+.ovf-search input:not(:placeholder-shown)~.srch-clear{display:block}
+mark.hl{background:rgba(91,124,250,.28);border-radius:3px;padding:0 2px;color:inherit}
+.card.srch-hide{display:none!important}
+/* Старый search-wrap в топбаре — убираем если остался */
+.search-wrap{display:none}
+
+/* Кнопки карточки — выровнять высоту */
+.card-actions{display:flex;align-items:center;gap:5px;margin-top:10px;flex-wrap:wrap}
+.card-actions .act{
+  height:28px;padding:0 9px;font-size:11px;font-weight:600;
+  border-radius:7px;border:1px solid rgba(20,26,40,.12);
+  background:#f0f2f6;color:#3d4a5c;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;justify-content:center;
+  white-space:nowrap;transition:background .12s;flex-shrink:0
+}
+.card-actions .act:hover{background:#e4e8f0;border-color:rgba(20,26,40,.2)}
+.card-actions .act.ico{width:28px;padding:0;font-size:14px}
+.card-actions .act.del{color:#b8323f;border-color:#f0c3c3;background:#fdeaea}
+.card-actions .act.del:hover{background:#f8d4d4}
+.card-actions .done-box{
+  height:28px;padding:0 9px;font-size:11px;font-weight:600;
+  border-radius:7px;border:1px solid rgba(20,26,40,.12);
+  background:#f0f2f6;color:#3d4a5c;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  transition:background .12s;flex-shrink:0
+}
+.card-actions .done-box:hover{background:#e4e8f0}
+.card-actions .done-box input{margin:0;cursor:pointer;accent-color:#4f6bed}
 </style>
 
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
@@ -588,17 +650,16 @@ window.FIREBASE_ROOM   = "team";
 <div class="topbar">
   <div class="brand">
     <div class="dot"></div>
-  <div class="search-wrap"><input type="search" id="searchInput" placeholder="Поиск…" autocomplete="off" aria-label="Поиск"><button class="srch-clear" id="searchClear" aria-label="Очистить">×</button></div>
     <div>Roadmap Tree<small>планировщик AI-команды</small></div>
   </div>
   <select class="select" id="projectSelect"></select>
-  <button class="btn primary" id="btnNewProject">+ Проект</button>
+  <button class="btn primary" id="btnNewProject">+&nbsp;Проект</button>
   <div class="spacer"></div>
   <div class="syncpill local" id="syncPill" title="Состояние синхронизации">
     <span class="bulb"></span><span id="syncTxt">Локально</span><span class="who" id="syncWho"></span>
   </div>
   <button class="btn sm" id="btnMembers">Участники</button>
-  <div class="tb-ovf" id="tbOvf"><button class="tb-ovf-btn" id="btnOverflow" aria-label="Ещё">⋯</button><div class="ovf-menu" id="ovfMenu"><button id="btnExpand">Развернуть всё</button><button id="btnCollapse">Свернуть всё</button><div class="ovf-sep"></div><button id="btnExport">Экспорт проекта</button><button id="btnExportAll">Экспорт всего</button><button id="btnImport">Импорт</button></div></div>
+  <div class="tb-ovf" id="tbOvf"><button class="tb-ovf-btn" id="btnOverflow" aria-label="Ещё">⋯</button><div class="ovf-menu" id="ovfMenu"><button id="btnExpand">Развернуть всё</button><button id="btnCollapse">Свернуть всё</button><div class="ovf-sep"></div><button id="btnExport">Экспорт проекта</button><button id="btnExportAll">Экспорт всего</button><button id="btnImport">Импорт</button><div class="ovf-sep"></div><div class="ovf-search"><input type="search" id="searchInput" placeholder="🔍 Поиск…" autocomplete="off" aria-label="Поиск"><button class="srch-clear" id="searchClear" aria-label="Очистить">×</button></div></div></div>
   <span class="userchip" id="userChip" style="display:none"><img id="uPhoto" alt=""><span id="uName"></span><button id="btnSignout">Выйти</button></span>
   </div>
 
