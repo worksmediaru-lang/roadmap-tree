@@ -667,11 +667,14 @@ function cloudInit(){
   const m = location.search.match(/[?&]join=([A-Za-z0-9_-]+)/);
   if(m) CLOUD.pendingInvite = m[1];
   const mg = location.search.match(/[?&]guest=([A-Za-z0-9_-]+)/);
-  if(mg && !CLOUD.user) openGuestAccess(mg[1]).catch(e=>{
-    console.error('[guest]',e);
-    alert('Доступ не сработал: '+e.message);
-    location.href=location.pathname;
-  });
+  if(mg && !CLOUD.user) {
+    console.log('[guest] найдена ссылка, пытаюсь войти...');
+    openGuestAccess(mg[1]).catch(e=>{
+      console.error('[guest] ошибка:',e);
+      alert('Доступ не сработал: '+e.message+'\n\nПроверьте:\n1. Ссылка скопирована правильно\n2. Firebase правила обновлены\n3. Проект ещё существует');
+      location.href=location.pathname;
+    });
+  }
 
   document.getElementById('btnGoogle').onclick = ()=>{
     gateErr('');
@@ -987,24 +990,46 @@ function createGuestToken(pid, role){
   }).then(()=>token);
 }
 function openGuestAccess(tok){
-  const p=proj();
-  if(!p) return Promise.reject(new Error('Выберите проект'));
-  return CLOUD.db.ref('invites/'+tok).once('value').then(s=>{
-    const inv=s.val();
-    if(!inv||inv.type!=='guest'||!inv.active||inv.pid!==p.id) 
-      throw new Error('Ссылка недействительна');
-    state={projects:[Object.assign({},p)]};
-    currentId=p.id;
-    CLOUD.roles[p.id]=inv.role||'viewer';
-    CLOUD.user={uid:'guest_'+tok.slice(0,8),displayName:'Гость',email:'',photoURL:''};
-    localStorage.setItem(LS_KEY,JSON.stringify(state));
-    render();
+  // 1) читаем приглашение аноним-запросом (правила позволяют)
+  const anonDB = CLOUD.db.ref('invites/'+tok);
+  return anonDB.once('value').then(s=>{
+    const inv = s.val();
+    console.log('[guest] прочитано приглашение:', inv);
+    if(!inv) throw new Error('Приглашение не найдено в базе');
+    if(inv.type !== 'guest') throw new Error('Это не гостевое приглашение');
+    if(!inv.active) throw new Error('Приглашение отозвано');
+
+    const pid = inv.pid;
+    const guestUid = 'guest_' + tok;
+
+    // 2) ставим себе фейковый uid
+    CLOUD.user = {uid: guestUid, displayName: 'Гость', email: '', photoURL: ''};
+
+    // 3) регистрируемся в members проекта (сервер проверит наличие токена)
+    return CLOUD.db.ref('projects/' + pid + '/members/' + guestUid).once('value').then(ex => {
+      if(ex.val()) {
+        console.log('[guest] уже в members');
+        return;
+      }
+      console.log('[guest] добавляю себя в members');
+      return CLOUD.db.ref('projects/' + pid + '/members/' + guestUid).set({
+        role: inv.role || 'viewer',
+        email: '',
+        name: 'Гость',
+        photo: '',
+        token: tok,
+        addedVia: 'guestLink',
+        joinedAt: Date.now()
+      });
+    });
+  }).then(() => {
+    console.log('[guest] подписываюсь на проекты');
+    watchMyProjects();
     document.getElementById('authGate').classList.remove('show');
-    document.getElementById('stage').style.display='flex';
-    if(document.getElementById('userChip')) document.getElementById('userChip').style.display='none';
-    if(document.getElementById('btnMembers')) document.getElementById('btnMembers').style.display='none';
-    pill('live','Доступ гостя','');
-    return inv;
+    document.getElementById('stage').style.display = 'flex';
+    if(document.getElementById('userChip')) document.getElementById('userChip').style.display = 'none';
+    if(document.getElementById('btnMembers')) document.getElementById('btnMembers').style.display = 'none';
+    pill('live', 'Доступ гостя', '');
   });
 }
 
