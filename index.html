@@ -330,6 +330,29 @@ body.dragging .drag-hint{display:block}
   .select{min-width:140px;flex:1}
 }
 </style>
+
+<!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* Ключи подставляются при деплое. */
+window.FIREBASE_CONFIG = {"apiKey": "AIzaSyCEuVgatD0Uefh6vVc2VhlczX6qEyIJvGY", "authDomain": "roadmap-tree.firebaseapp.com", "databaseURL": "https://roadmap-tree-default-rtdb.europe-west1.firebasedatabase.app", "projectId": "roadmap-tree", "storageBucket": "roadmap-tree.firebasestorage.app", "messagingSenderId": "789136105311", "appId": "1:789136105311:web:1c603cdb111178fbc760ea"};
+window.FIREBASE_ROOM   = "team";
+</script>
+<style>
+.syncpill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;
+  letter-spacing:.3px;padding:5px 11px;border-radius:20px;white-space:nowrap;
+  background:rgba(255,255,255,.86);border:1px solid rgba(20,26,40,.12);color:#5b6474;
+  box-shadow:0 1px 2px rgba(20,26,40,.06);transition:.2s ease}
+.syncpill .bulb{width:8px;height:8px;border-radius:50%;background:#c3c9d4;flex:0 0 auto}
+.syncpill.live{background:#e6f7ee;border-color:#a9ddc2;color:#22794f}
+.syncpill.live .bulb{background:#34c17b;box-shadow:0 0 0 3px rgba(52,193,123,.18)}
+.syncpill.saving{background:#fff6e2;border-color:#f0d7a4;color:#8a6412}
+.syncpill.saving .bulb{background:#f0b429}
+.syncpill.local{background:#eef0f4;border-color:#cbd1d9;color:#5b6474}
+.syncpill.err{background:#fdeaea;border-color:#f0b6b6;color:#a33636}
+.syncpill .who{opacity:.72;font-weight:700}
+</style>
 </head>
 <body>
 
@@ -341,6 +364,9 @@ body.dragging .drag-hint{display:block}
   <select class="select" id="projectSelect"></select>
   <button class="btn primary" id="btnNewProject">+ Проект</button>
   <div class="spacer"></div>
+  <div class="syncpill local" id="syncPill" title="Состояние синхронизации">
+    <span class="bulb"></span><span id="syncTxt">Локально</span><span class="who" id="syncWho"></span>
+  </div>
   <button class="btn ghost sm" id="btnExpand">Развернуть всё</button>
   <button class="btn ghost sm" id="btnCollapse">Свернуть всё</button>
   <button class="btn sm" id="btnDemo">Демо-проект</button>
@@ -426,6 +452,106 @@ body.dragging .drag-hint{display:block}
 const LS_KEY = 'roadmapTree.v1';
 let state = load();
 let currentId = state.projects[0] ? state.projects[0].id : null;
+
+/* ============ SYNC LAYER (Firebase Realtime DB) ============ */
+const SYNC = {
+  db:null, ref:null, on:false,
+  applying:false,      // идёт применение удалённых данных -> не пишем назад
+  pending:null,        // таймер дебаунса записи
+  lastPushed:'',       // что мы сами отправили последним (гасим эхо)
+  me:(Math.random().toString(36).slice(2,6)),
+  peers:0
+};
+function syncPill(cls, txt, who){
+  const el=document.getElementById('syncPill'); if(!el) return;
+  el.className='syncpill '+cls;
+  const t=document.getElementById('syncTxt'); if(t) t.textContent=txt;
+  const w=document.getElementById('syncWho'); if(w) w.textContent=who||'';
+}
+function syncInit(){
+  const cfg = window.FIREBASE_CONFIG;
+  if(!cfg || !cfg.databaseURL || String(cfg.apiKey||'').indexOf('YOUR_')===0){
+    syncPill('local','Локально','');
+    console.info('[sync] Firebase не настроен — работаем в localStorage');
+    return;
+  }
+  if(typeof firebase==='undefined' || !firebase.initializeApp){
+    syncPill('err','SDK не загрузился','');
+    console.error('[sync] firebase SDK недоступен');
+    return;
+  }
+  try{
+    firebase.initializeApp(cfg);
+    SYNC.db  = firebase.database();
+    SYNC.ref = SYNC.db.ref('rooms/'+(window.FIREBASE_ROOM||'default'));
+    SYNC.on  = true;
+
+    // онлайн-присутствие
+    const pres = SYNC.ref.child('presence');
+    const meRef = pres.child(SYNC.me);
+    meRef.onDisconnect().remove();
+    meRef.set(Date.now());
+    setInterval(()=>{ if(SYNC.on) meRef.set(Date.now()); }, 25000);
+    pres.on('value', s=>{
+      SYNC.peers = s.numChildren();
+      if(document.getElementById('syncPill').classList.contains('live')){
+        syncPill('live','В сети', SYNC.peers>1 ? ('· '+SYNC.peers) : '');
+      }
+    });
+
+    // подписка на данные
+    SYNC.ref.child('doc').on('value', snap=>{
+      const remote = snap.val();
+      if(remote==null){                       // база пуста -> заливаем текущее
+        syncPush(true);
+        syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):'');
+        return;
+      }
+      const raw = typeof remote==='string' ? remote : JSON.stringify(remote);
+      if(raw===SYNC.lastPushed){              // это наша же запись
+        syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):'');
+        return;
+      }
+      let incoming;
+      try{ incoming = typeof remote==='string' ? JSON.parse(remote) : remote; }
+      catch(e){ console.warn('[sync] битые данные',e); return; }
+      if(!incoming || !Array.isArray(incoming.projects)) return;
+
+      SYNC.applying = true;
+      state = incoming;
+      if(!state.projects.some(p=>p.id===currentId)){
+        currentId = state.projects[0] ? state.projects[0].id : null;
+      }
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      try{ render(); }catch(e){ console.error(e); }
+      SYNC.applying = false;
+      syncPill('live','Обновлено', SYNC.peers>1?('· '+SYNC.peers):'');
+      setTimeout(()=>syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):''), 900);
+    }, err=>{
+      console.error('[sync] read error', err);
+      syncPill('err','Нет доступа к БД','');
+    });
+
+    syncPill('live','В сети','');
+  }catch(e){
+    console.error('[sync] init failed', e);
+    syncPill('err','Ошибка Firebase','');
+    SYNC.on=false;
+  }
+}
+function syncPush(immediate){
+  if(!SYNC.on || SYNC.applying) return;
+  clearTimeout(SYNC.pending);
+  const doIt = ()=>{
+    const payload = JSON.stringify(state);
+    SYNC.lastPushed = payload;
+    syncPill('saving','Сохраняю…','');
+    SYNC.ref.child('doc').set(payload)
+      .then(()=>syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):''))
+      .catch(e=>{ console.error('[sync] write error',e); syncPill('err','Не сохранилось',''); });
+  };
+  immediate ? doIt() : (SYNC.pending = setTimeout(doIt, 350));
+}
 let zoom = 1;
 
 // modal context
@@ -439,7 +565,7 @@ function load(){
   }catch(e){}
   return { projects: [] };
 }
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); syncPush(false); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function proj(){ return state.projects.find(p=>p.id===currentId); }
@@ -944,6 +1070,7 @@ document.getElementById('btnDemo').onclick = ()=>{
 
 render();
 applyZoom();
+syncInit();
 </script>
 </body>
 </html>
