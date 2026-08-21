@@ -72,10 +72,7 @@ input,textarea,select{font-family:inherit}
 }
 
 /* ---------- LAYOUT ---------- */
-.stage{flex:1;overflow:auto;padding:34px 34px 120px;transition:transform .18s ease;display:flex;justify-content:flex-start;margin:0 auto;touch-action:pan-x pan-y;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
-  background:rgba(255,255,255,.85);backdrop-filter:blur(14px);
-  padding:6px;border-radius:14px;box-shadow:var(--shadow-m);border:1px solid rgba(20,26,40,.07)
-}
+
 .zoombar .lbl{font-size:12px;color:var(--ink-3);width:44px;text-align:center;font-weight:600}
 
 /* ---------- SUBTREE / CONNECTORS ---------- */
@@ -338,7 +335,7 @@ body.dragging .drag-hint{display:block}
 
 @media (max-width:900px){
   /* глубокие горизонтальные ветки тоже вертикально — иначе не влезает */
-  .branch-h{flex-direction:column;align-items:flex-start;padding-top:12px;margin-left:14px}
+  
   .branch-h::before{left:12px;height:12px}
   .h-item{padding:12px 0 0 28px;margin-top:6px}
   .h-item:first-child{margin-top:0}
@@ -362,7 +359,7 @@ body.dragging .drag-hint{display:block}
   .syncpill{font-size:10px;padding:4px 8px}
 
   /* дерево остаётся широким — листаем пальцем в обе стороны */
-  .stage{padding:14px 12px 120px;overflow:auto;-webkit-overflow-scrolling:touch}
+  
   .tree{min-width:max-content}
 
   .card-actions{gap:5px}
@@ -410,7 +407,7 @@ body.dragging .drag-hint{display:block}
 }
 
 /* mobile media 480px removed */
-  .stage{padding:12px 10px 112px}
+  
   .btn,.btn.sm,.btn.primary{padding:8px 9px;font-size:10.5px}
   .select{font-size:11.5px}
   .card{padding:8px 10px 7px}
@@ -552,6 +549,8 @@ mark.hl{background:rgba(91,124,250,.28);border-radius:3px;padding:0 2px;color:in
   cursor:pointer;
   accent-color:#4f6bed;
 }
+
+.stage{flex:1;display:block;overflow:auto;overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:34px 34px 140px;touch-action:pan-x pan-y}
 </style>
 
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
@@ -760,6 +759,54 @@ window.FIREBASE_ROOM   = "team";
 .sub-root {
   display: flex !important;
   justify-content: center !important;
+  width: max-content !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ПРИНУДИТЕЛЬНАЯ ГОРИЗОНТАЛЬНАЯ РАСКЛАДКА ДЕРЕВА
+   Работает на любом устройстве — мобиль = десктоп
+   ══════════════════════════════════════════════════════════ */
+
+/* Stage — прокрутка в обе стороны */
+.stage {
+  display: block !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 34px 34px 140px !important;
+  touch-action: pan-x pan-y !important;
+}
+
+/* Tree — ширина по контенту, не сжимается */
+#tree, .tree {
+  display: inline-block !important;
+  width: max-content !important;
+  min-width: max-content !important;
+}
+
+/* branch-h — ГОРИЗОНТАЛЬНО, без переноса, всегда */
+.branch-h {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  flex-wrap: nowrap !important;
+  gap: 18px !important;
+}
+
+/* h-item — не сжимается */
+.h-item {
+  flex: 0 0 auto !important;
+}
+
+/* Карточка — фиксированная ширина */
+.card {
+  width: var(--card-w, 280px) !important;
+  min-width: var(--card-w, 280px) !important;
+  max-width: var(--card-w, 280px) !important;
+  box-sizing: border-box !important;
+}
+
+/* sub-root — центровка корневой карточки */
+.sub-root {
   width: max-content !important;
 }
 </style>
