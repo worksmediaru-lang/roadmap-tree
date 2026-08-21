@@ -1661,7 +1661,7 @@ function renderVBranch(list, parentPath, level){
 
 /* Горизонтальный ряд — для первых двух уровней (1-й и 2-й в интерфейсе).
    С 3-го уровня ветки уходят вертикальной лесенкой. Одинаково на всех устройствах. */
-function isNarrow(){ return window.innerWidth <= 760; }
+function isNarrow(){ return false; /* мобиль = десктоп */ }
 const H_FLAT_FROM = 2;
 function hFlatFrom(){ return H_FLAT_FROM; }
 
