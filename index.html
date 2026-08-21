@@ -542,28 +542,22 @@ mark.hl{background:rgba(91,124,250,.28);border-radius:3px;padding:0 2px;color:in
 /* Старый search-wrap в топбаре — убираем если остался */
 .search-wrap{display:none}
 
-/* Кнопки карточки — выровнять высоту */
-.card-actions{display:flex;align-items:center;gap:5px;margin-top:10px;flex-wrap:wrap}
-.card-actions .act{
-  height:28px;padding:0 9px;font-size:11px;font-weight:600;
-  border-radius:7px;border:1px solid rgba(20,26,40,.12);
-  background:#f0f2f6;color:#3d4a5c;cursor:pointer;font-family:inherit;
-  display:inline-flex;align-items:center;justify-content:center;
-  white-space:nowrap;transition:background .12s;flex-shrink:0
+/* ═══ Выровнять кнопки card-actions по высоте ═══ */
+.card-actions .act, .card-actions .done-box {
+  height:26px !important;
+  min-height:26px !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  box-sizing:border-box;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 }
-.card-actions .act:hover{background:#e4e8f0;border-color:rgba(20,26,40,.2)}
-.card-actions .act.ico{width:28px;padding:0;font-size:14px}
-.card-actions .act.del{color:#b8323f;border-color:#f0c3c3;background:#fdeaea}
-.card-actions .act.del:hover{background:#f8d4d4}
-.card-actions .done-box{
-  height:28px;padding:0 9px;font-size:11px;font-weight:600;
-  border-radius:7px;border:1px solid rgba(20,26,40,.12);
-  background:#f0f2f6;color:#3d4a5c;cursor:pointer;
-  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
-  transition:background .12s;flex-shrink:0
+.card-actions .done-box input[type="checkbox"] {
+  margin:0;
+  cursor:pointer;
+  accent-color:#4f6bed;
 }
-.card-actions .done-box:hover{background:#e4e8f0}
-.card-actions .done-box input{margin:0;cursor:pointer;accent-color:#4f6bed}
 </style>
 
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
@@ -1479,13 +1473,12 @@ function renderCard(n, path, level){
     <div class="card-actions">
       <button class="act add-v" data-act="add-v" data-path="${ps}" title="Добавить подпункт (вниз)">↓ подпункт</button>
       <button class="act add-h" data-act="add-h" data-path="${ps}" title="Добавить подзадачу (вбок)">→ подзадача</button>
+      <button class="act ico" data-act="edit" data-path="${ps}" title="Редактировать">✏️</button>
+      <button class="act ico" data-act="cmt" data-path="${ps}" title="Комментарии">💬${n.comments.length?' '+n.comments.length:''}</button>
       <label class="done-box ${n.status==='done'?'on':''}" title="Отметить выполненным">
         <input type="checkbox" data-act="set-done" data-path="${ps}" ${n.status==='done'?'checked':''}>
         Готово
       </label>
-      <span class="act-sep"></span>
-      <button class="act ico" data-act="cmt" data-path="${ps}" title="Комментарии">💬${n.comments.length?' '+n.comments.length:''}</button>
-      <button class="act ico" data-act="edit" data-path="${ps}" title="Редактировать">✏️</button>
       <button class="act ico del" data-act="del" data-path="${ps}" title="Удалить">🗑</button>
     </div>
     <div class="cmt">
