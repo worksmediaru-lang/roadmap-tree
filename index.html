@@ -107,10 +107,14 @@ input,textarea,select{font-family:inherit}
 .v-item:first-child{margin-top:0}
 /* вертикальный отрезок рельса: от предыдущего соседа до своего стыка */
 .v-item > .seg{
-  position:absolute;left:-30px;top:-10px;width:2px;height:32px;
+  position:absolute;left:-30px;top:-10px;width:2px;
+  height:calc(100% + 10px);
   background:var(--line);border-radius:2px;z-index:1
 }
-.v-item:first-child > .seg{top:-12px;height:34px}
+.v-item:first-child > .seg{top:-12px;height:calc(100% + 12px)}
+/* последний потомок: рельс обрывается ровно на своём локте */
+.v-item:last-child > .seg{height:32px}
+.v-item:first-child:last-child > .seg{top:-12px;height:34px}
 /* локоть: горизонтальная перекладина в жёлобе */
 .v-item::before{
   content:"";position:absolute;left:-30px;top:21px;width:19px;height:2px;
@@ -128,8 +132,7 @@ input,textarea,select{font-family:inherit}
 .branch-hv > .v-item > .seg,
 .branch-hv > .v-item::before{background:var(--hv-line)}
 .branch-hv > .v-item::after{border-left-color:var(--hv-line)}
-.hv-tag{position:absolute;left:-30px;top:2px;z-index:3;font-size:9px;font-weight:800;
-  color:var(--hv-line);pointer-events:none;line-height:1}
+
 
 /* ---------- CARDS ---------- */
 .card{
@@ -346,7 +349,7 @@ body.dragging .drag-hint{display:block}
 }
 
 @media (max-width:760px){
-  :root{--card-w:min(300px, calc(100vw - 84px));--radius:13px}
+  :root{--radius:13px}
 
   .topbar{flex-wrap:wrap;padding:9px 11px;gap:7px;row-gap:8px}
   .brand{font-size:13px;gap:7px}
@@ -359,21 +362,23 @@ body.dragging .drag-hint{display:block}
   .userchip button{padding:3px 7px;font-size:9.5px}
   .syncpill{font-size:10px;padding:4px 8px}
 
-  .stage{padding:14px 10px 130px;-webkit-overflow-scrolling:touch}
-  .tree{min-width:0;justify-content:flex-start}
-
-  .card{padding:9px 11px 8px}
+  .stage{padding:14px 10px 130px;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  .tree{min-width:0;width:100%;justify-content:flex-start}
+  .subtree{align-items:stretch;width:100%}
+  .column{width:100%;min-width:0}
+  .card{width:auto;max-width:100%;padding:9px 11px 8px}
   .card-actions{flex-wrap:wrap;gap:5px}
   .card-actions .act{padding:6px 9px;font-size:10px;min-height:30px}
 
-  .branch-v{margin-left:12px;padding:10px 0 0 24px}
+  .branch-v{margin-left:0;padding:10px 0 0 20px}
+  .branch-hv{margin-left:0}
   .v-item{margin-top:9px}
-  .v-item > .seg{left:-24px;top:-9px;height:29px}
-  .v-item:first-child > .seg{top:-11px;height:31px}
-  .v-item::before{left:-24px;top:19px;width:14px}
-  .v-item::after{left:-10px;top:13px;border-top-width:5px;border-bottom-width:5px;border-left-width:6px}
-  .branch-hv{margin-left:8px}
-  .hv-tag{left:-24px;top:1px;font-size:8px}
+  .v-item > .seg{left:-20px;top:-9px;height:calc(100% + 9px)}
+  .v-item:first-child > .seg{top:-11px;height:calc(100% + 11px)}
+  .v-item:last-child > .seg{height:28px}
+  .v-item:first-child:last-child > .seg{top:-11px;height:30px}
+  .v-item::before{left:-20px;top:19px;width:11px}
+  .v-item::after{left:-9px;top:15px;width:7px;height:9px}
 
   .project-card{padding:14px}
   .project-card h2{font-size:16px}
@@ -381,7 +386,6 @@ body.dragging .drag-hint{display:block}
   .pactions{flex-wrap:wrap;gap:5px}
   .pactions .act{padding:8px 10px;font-size:10.5px;min-height:34px}
 
-  /* перетаскивание на тач-экране не работает — прячем подсказки */
   .dropzones,.dz{display:none !important}
 
   .gate-card{padding:26px 18px;width:94%;border-radius:16px}
@@ -391,7 +395,7 @@ body.dragging .drag-hint{display:block}
   .inv-card{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0;padding:16px 14px 26px}
   #invOverlay{align-items:stretch}
   .inv-row{flex-wrap:wrap}
-  .inv-row input,.inv-row select{flex:1 1 100%;min-height:38px;font-size:13px}
+  .inv-row input,.inv-row select{flex:1 1 100%;min-height:38px;font-size:16px}
   .inv-btn{flex:1 1 100%;min-height:38px;font-size:12.5px}
   .inv-link{flex-wrap:wrap}
   .mem{flex-wrap:wrap;row-gap:6px}
@@ -399,7 +403,6 @@ body.dragging .drag-hint{display:block}
   .mem .kick,.mem .addc{flex:1 1 100%;margin-left:0;min-height:32px}
   .mem select.cr{margin-left:auto;min-height:32px}
 
-  /* модалки задач/проекта: во весь экран, поля не мельче 16px — iOS иначе зумит */
   .modal{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0}
   .overlay{align-items:stretch}
   .row{grid-template-columns:1fr}
@@ -410,15 +413,16 @@ body.dragging .drag-hint{display:block}
 }
 
 @media (max-width:480px){
-  :root{--card-w:min(280px, calc(100vw - 72px))}
   .stage{padding:11px 8px 120px}
   .btn,.btn.sm,.btn.primary{padding:8px 9px;font-size:10.5px}
   .select{font-size:11.5px}
-  .branch-v{margin-left:8px;padding:9px 0 0 21px}
-  .v-item > .seg{left:-21px;height:27px}
-  .v-item::before{left:-21px;width:12px;top:18px}
-  .v-item::after{left:-9px;top:12px}
-  .hv-tag{left:-21px}
+  .card{padding:8px 10px 7px}
+  .branch-v{padding:9px 0 0 17px}
+  .v-item > .seg{left:-17px}
+  .v-item:last-child > .seg{height:26px}
+  .v-item:first-child:last-child > .seg{top:-11px;height:28px}
+  .v-item::before{left:-17px;top:17px;width:9px}
+  .v-item::after{left:-8px;top:13px;width:6px;height:8px}
   .project-card h2{font-size:15px}
   .pmeta{grid-template-columns:1fr}
 }
@@ -1213,13 +1217,20 @@ function render(){
       </div>
     </div>`;
 
+  const narrow = isNarrow();
   const rootV = p.childrenV.length ? renderVBranch(p.childrenV, [], 0) : '';
-  const rootH = p.childrenH.length ? renderHBranch(p.childrenH, [], 0) : '';
+  const rootH = p.childrenH.length
+    ? (narrow ? renderHFlat(p.childrenH, [], 0) : renderHBranch(p.childrenH, [], 0))
+    : '';
 
-  tree.innerHTML = `<div class="subtree">
-      <div class="column" style="width:640px;max-width:100%">${head}${rootV}</div>
-      ${rootH}
-    </div>`;
+  tree.innerHTML = narrow
+    ? `<div class="subtree">
+        <div class="column" style="width:100%">${head}${rootV}${rootH}</div>
+      </div>`
+    : `<div class="subtree">
+        <div class="column" style="width:640px;max-width:100%">${head}${rootV}</div>
+        ${rootH}
+      </div>`;
 }
 
 function renderHBranch(list, parentPath, level){
@@ -1234,7 +1245,7 @@ function renderHBranch(list, parentPath, level){
 function renderHFlat(list, parentPath, level){
   const items = list.map((n,i)=>{
     const path = parentPath.concat([{k:'H',i}]);
-    return `<div class="v-item"><i class="seg"></i><i class="hv-tag">\u2192</i>${renderSubtree(n, path, level)}</div>`;
+    return `<div class="v-item"><i class="seg"></i>${renderSubtree(n, path, level)}</div>`;
   }).join('');
   return `<div class="branch-v branch-hv">${items}</div>`;
 }
@@ -1247,9 +1258,10 @@ function renderVBranch(list, parentPath, level){
   return `<div class="branch-v">${items}</div>`;
 }
 
-/* с какого code-level горизонтальные ветки становятся вертикальными
-   code-level 2 == третий уровень в интерфейсе */
-const H_FLAT_FROM = 2;
+/* На телефоне горизонтальных рядов нет вообще: всё уходит вертикальной
+   лесенкой. На десктопе ряд остаётся для первых двух уровней. */
+function isNarrow(){ return window.innerWidth <= 760; }
+function hFlatFrom(){ return isNarrow() ? 0 : 2; }
 
 function renderSubtree(node, path, level){
   const card = renderCard(node, path, level);
@@ -1257,7 +1269,7 @@ function renderSubtree(node, path, level){
   const kid = level + 1;
   const v = node.childrenV.length ? renderVBranch(node.childrenV, path, kid) : '';
   if(!node.childrenH.length) return `<div class="subtree"><div class="column">${card}${v}</div></div>`;
-  if(kid >= H_FLAT_FROM){
+  if(kid >= hFlatFrom()){
     const hv = renderHFlat(node.childrenH, path, kid);
     return `<div class="subtree"><div class="column">${card}${v}${hv}</div></div>`;
   }
@@ -1720,6 +1732,13 @@ document.getElementById('btnDemo').onclick = ()=>{
 render();
 applyZoom();
 cloudInit();
+
+/* поворот телефона или смена ширины меняет раскладку дерева */
+let _wasNarrow = isNarrow();
+window.addEventListener('resize', ()=>{
+  const now = isNarrow();
+  if(now !== _wasNarrow){ _wasNarrow = now; try{ render(); }catch(e){} }
+});
 </script>
 </body>
 </html>
