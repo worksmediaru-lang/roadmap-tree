@@ -354,153 +354,85 @@ body.dragging .drag-hint{display:block}
 
 @media (max-width:760px){
   :root{--card-w:270px;--radius:13px}
-  .topbar{padding:8px 10px;gap:6px;row-gap:6px;flex-wrap:wrap}
-  .brand{font-size:13px;gap:7px}.brand small{display:none}
-  .search-wrap{flex:1 1 110px;max-width:none;order:2}
-  .search-wrap input{font-size:12px;padding:6px 24px 6px 10px}
-  .btn.primary{padding:8px 10px;font-size:11.5px;min-height:34px}
-  .select{min-width:0;flex:1 1 100px;padding:8px 9px;font-size:12px;min-height:34px}
+
+  .topbar{flex-wrap:wrap;padding:8px 10px;gap:6px;row-gap:7px}
+  .brand{font-size:13px;gap:7px}
+  .brand small{display:none}
+  .btn,.btn.sm,.btn.primary,.btn.ghost.sm{padding:8px 10px;font-size:11.5px;min-height:34px}
+  .select{min-width:0;flex:1 1 120px;padding:8px 10px;font-size:12px;min-height:34px}
   .spacer{display:none}
   .userchip{font-size:10.5px;padding:3px 7px 3px 3px}
   .userchip img{width:19px;height:19px}
   .userchip button{padding:3px 7px;font-size:9.5px}
-  .syncpill{font-size:10px;padding:4px 7px}
+  .syncpill{font-size:10px;padding:4px 8px}
+
+  /* дерево остаётся широким — листаем пальцем в обе стороны */
   .stage{padding:14px 12px 120px;overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
-  .tree{min-width:max-content;margin:0}
-  .card{padding:9px 10px 8px}
-  .card-actions{margin-top:8px;gap:4px;flex-wrap:wrap}
-  .card-actions .act{padding:5px 8px;font-size:10px;min-height:30px}
+  .tree{min-width:max-content}
+
+  .card-actions{gap:5px}
+  .card-actions .act{padding:6px 9px;font-size:10px;min-height:30px}
+
   .branch-h{gap:14px}
-  .h-item::before{left:-14px}.h-item::after{right:-14px}
+  .h-item::before{left:-14px}
+  .h-item::after{right:-14px}
   .branch-v{margin-left:16px;padding:10px 0 0 24px}
-  .v-item>.seg{left:-24px;top:-9px;height:calc(100% + 9px)}
-  .v-item:first-child>.seg{top:-11px;height:calc(100% + 11px)}
-  .v-item:last-child>.seg{height:30px}
-  .v-item:first-child:last-child>.seg{top:-11px;height:32px}
+  .v-item > .seg{left:-24px;top:-9px;height:calc(100% + 9px)}
+  .v-item:first-child > .seg{top:-11px;height:calc(100% + 11px)}
+  .v-item:last-child > .seg{height:30px}
+  .v-item:first-child:last-child > .seg{top:-11px;height:32px}
   .v-item::before{left:-24px;top:19px;width:14px}
   .v-item::after{left:-11px;top:15px;width:7px;height:9px}
-  .project-card{width:min(640px,calc(100vw - 40px));padding:15px 16px}
+
+  .project-card{width:min(640px, calc(100vw - 44px));padding:15px 16px}
   .project-card h2{font-size:17px}
-  .pmeta{grid-template-columns:1fr 1fr;gap:8px}
-  .pactions{flex-wrap:wrap;gap:5px}.pactions .act{padding:8px 10px;font-size:10.5px;min-height:34px}
-  .dropzones,.dz{display:none!important}
-  .gate-card{padding:26px 18px;width:94%;border-radius:16px}.gate-card h2{font-size:19px}
+  .pactions .act{padding:8px 10px;font-size:10.5px;min-height:34px}
+
+  .dropzones,.dz{display:none !important}
+
+  .gate-card{padding:26px 18px;width:94%;border-radius:16px}
+  .gate-card h2{font-size:19px}
+
   .inv-card{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0;padding:16px 14px 26px}
   #invOverlay{align-items:stretch}
   .inv-row{flex-wrap:wrap}
   .inv-row input,.inv-row select{flex:1 1 100%;min-height:38px;font-size:16px}
   .inv-btn{flex:1 1 100%;min-height:38px;font-size:12.5px}
   .inv-link{flex-wrap:wrap}
-  .mem{flex-wrap:wrap;row-gap:6px}.mem .rl{margin-left:auto}
+  .mem{flex-wrap:wrap;row-gap:6px}
+  .mem .rl{margin-left:auto}
   .mem .kick,.mem .addc{flex:1 1 100%;margin-left:0;min-height:32px}
+  .mem select.cr{margin-left:auto;min-height:32px}
+
   .modal{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0}
   .overlay{align-items:stretch}
   .row{grid-template-columns:1fr}
   .field input,.field select,.field textarea{font-size:16px;min-height:40px}
-  .zoombar{right:8px;bottom:calc(8px + env(safe-area-inset-bottom));padding:4px;gap:3px}
+
+  .zoombar{right:8px;bottom:calc(8px + env(safe-area-inset-bottom));padding:4px;gap:3px;opacity:.93}
   .zoombar .btn{min-width:34px;min-height:34px;padding:6px 8px}
   .zoombar .lbl{font-size:11px;min-width:38px}
-  .toast{bottom:calc(66px + env(safe-area-inset-bottom))}
 }
 
 @media (max-width:480px){
   :root{--card-w:255px}
   .stage{padding:12px 10px 112px}
+  .btn,.btn.sm,.btn.primary{padding:8px 9px;font-size:10.5px}
+  .select{font-size:11.5px}
   .card{padding:8px 10px 7px}
   .branch-h{gap:12px}
-  .h-item::before{left:-12px}.h-item::after{right:-12px}
+  .h-item::before{left:-12px}
+  .h-item::after{right:-12px}
   .branch-v{margin-left:12px;padding:9px 0 0 21px}
-  .v-item>.seg{left:-21px}
-  .v-item:last-child>.seg{height:28px}
-  .v-item:first-child:last-child>.seg{top:-11px;height:30px}
+  .v-item > .seg{left:-21px}
+  .v-item:last-child > .seg{height:28px}
+  .v-item:first-child:last-child > .seg{top:-11px;height:30px}
   .v-item::before{left:-21px;top:18px;width:12px}
   .v-item::after{left:-10px;top:14px;width:6px;height:8px}
-  .project-card{padding:14px}.project-card h2{font-size:16px}
-  .pmeta{grid-template-columns:1fr}
-  .search-wrap{order:-1;flex:1 1 100%}
+  .project-card{padding:14px}
+  .project-card h2{font-size:16px}
 }
 
-
-/* ═══ ПРИОРИТЕТ: полоска слева ═══ */
-.card{position:relative}
-.card::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;
-  border-radius:0 3px 3px 0;z-index:3;pointer-events:none}
-.card[data-prio="high"]::before{background:#ef6c6c}
-.card[data-prio="medium"]::before{background:#f5a623}
-.card[data-prio="low"]::before{background:#5bc27a}
-
-/* ═══ ЦВЕТ = СОСТОЯНИЕ ═══ */
-.card.lv0,.card.lv1,.card.lv2,.card.lv3,.card.lv4,.card.lv5{background:initial;border-color:initial}
-.card{background:#fff;border-color:rgba(20,26,40,.09)}
-.card[data-status="done"]{background:#f0faf4;border-color:#b2d8be;opacity:.85;filter:saturate(.4)}
-.card[data-status="in_progress"]{border-color:rgba(91,124,250,.28)}
-.card[data-status="review"]{background:#fdf9ee;border-color:rgba(245,166,35,.32)}
-.card[data-status="planning"]{background:#fafbfc}
-.card.overdue{border-color:#ef6c6c!important;box-shadow:0 0 0 2px rgba(239,108,108,.13),var(--shadow-s)!important}
-
-/* ═══ КНОПКИ: скрыть, показывать при наведении ═══ */
-.card-actions{opacity:0;pointer-events:none;transition:opacity .14s}
-.card:hover .card-actions{opacity:1;pointer-events:auto}
-@media (pointer:coarse){.card-actions{opacity:1;pointer-events:auto}}
-
-/* ═══ CHIP ═══ */
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:7px}
-.card-title{font-size:13.5px;font-weight:700;color:#1f2430;line-height:1.35;flex:1;word-break:break-word}
-.card-meta{display:flex;flex-wrap:wrap;gap:5px}
-.chip{display:inline-flex;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:20px;
-  white-space:nowrap;border:none;font-family:inherit}
-.chip-a{background:#f0f3ff;color:#4f6bed}
-.chip-d{background:#fff8ec;color:#9a6700}
-.chip-late{background:#fdeaea!important;color:#a33636!important}
-.chip-s{cursor:pointer;background:#f0f4f9;color:#3d4a5c}
-.chip-s.chip-hi{background:#fdeaea;color:#a33636}
-.chip-s.chip-md{background:#fff8ec;color:#9a6700}
-.chip-s.chip-lo{background:#edfaf3;color:#276140}
-.status-sel{border:none;outline:none;background:transparent;font-family:inherit}
-.collapse-btn{background:rgba(20,26,40,.08);border:none;border-radius:6px;padding:2px 7px;
-  font-size:11px;font-weight:700;cursor:pointer;color:#5b6474;font-family:inherit}
-
-/* ═══ ПОИСК ═══ */
-.search-wrap{position:relative;flex:1 1 150px;max-width:250px}
-.search-wrap input{width:100%;padding:7px 26px 7px 11px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.13);
-  color:#fff;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box}
-.search-wrap input::placeholder{color:rgba(255,255,255,.5)}
-.search-wrap input:focus{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4)}
-.srch-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;color:rgba(255,255,255,.65);font-size:16px;
-  line-height:1;padding:0;display:none}
-.search-wrap input:not(:placeholder-shown)~.srch-clear{display:block}
-mark.hl{background:rgba(91,124,250,.28);border-radius:3px;padding:0 2px;color:inherit}
-.card.srch-hide{display:none!important}
-
-/* ═══ OVERFLOW MENU ═══ */
-.tb-ovf{position:relative}
-.tb-ovf-btn{padding:6px 11px;font-size:17px;line-height:1;background:rgba(255,255,255,.14);
-  border:1px solid rgba(255,255,255,.2);border-radius:10px;cursor:pointer;color:#fff;font-family:inherit}
-.tb-ovf-btn:hover{background:rgba(255,255,255,.24)}
-.ovf-menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border-radius:12px;
-  box-shadow:0 8px 24px rgba(20,26,40,.18);border:1px solid rgba(20,26,40,.09);
-  min-width:175px;z-index:200;display:none;flex-direction:column;overflow:hidden}
-.ovf-menu.open{display:flex}
-.ovf-menu button{padding:10px 15px;font-size:13px;font-weight:600;text-align:left;
-  background:none;border:none;cursor:pointer;font-family:inherit;color:#1f2430}
-.ovf-menu button:hover{background:#f4f5f7}
-.ovf-sep{height:1px;background:rgba(20,26,40,.07);margin:3px 0}
-
-/* ═══ ТОСТ ═══ */
-.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);
-  background:#1f2430;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;
-  display:flex;align-items:center;gap:12px;z-index:9999;opacity:0;pointer-events:none;
-  transition:opacity .18s,transform .18s;box-shadow:0 4px 16px rgba(20,26,40,.3);
-  white-space:nowrap;max-width:calc(100vw - 32px)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
-.toast-undo{background:none;border:none;color:#7b9ef9;font-size:13px;font-weight:700;
-  cursor:pointer;font-family:inherit;padding:2px 4px}
-
-/* ═══ prefers-reduced-motion ═══ */
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{
-  animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
@@ -586,8 +518,7 @@ window.FIREBASE_ROOM   = "team";
 
 <div class="topbar">
   <div class="brand">
-    <div class="dot"></div><div class="search-wrap"><input type="search" id="searchInput" placeholder="Поиск…" autocomplete="off" aria-label="Поиск"><button class="srch-clear" id="searchClear" aria-label="Очистить">×</button></div>
-  
+    <div class="dot"></div>
     <div>Roadmap Tree<small>планировщик AI-команды</small></div>
   </div>
   <select class="select" id="projectSelect"></select>
@@ -597,9 +528,13 @@ window.FIREBASE_ROOM   = "team";
     <span class="bulb"></span><span id="syncTxt">Локально</span><span class="who" id="syncWho"></span>
   </div>
   <button class="btn sm" id="btnMembers">Участники</button>
-  <div class="tb-ovf" id="tbOvf"><button class="tb-ovf-btn" id="btnOverflow" aria-label="Ещё">⋯</button><div class="ovf-menu" id="ovfMenu"><button id="btnExpand">Развернуть всё</button><button id="btnCollapse">Свернуть всё</button><div class="ovf-sep"></div><button id="btnExport">Экспорт проекта</button><button id="btnExportAll">Экспорт всего</button><button id="btnImport">Импорт</button></div></div>
   <span class="userchip" id="userChip" style="display:none"><img id="uPhoto" alt=""><span id="uName"></span><button id="btnSignout">Выйти</button></span>
-  </div>
+  <button class="btn ghost sm" id="btnExpand">Развернуть всё</button>
+  <button class="btn ghost sm" id="btnCollapse">Свернуть всё</button>
+  <button class="btn sm" id="btnDemo">Демо-проект</button>
+  <button class="btn sm" id="btnExport">Экспорт</button>
+  <button class="btn sm" id="btnImport">Импорт</button>
+</div>
 
 
 <div id="authGate">
@@ -1379,42 +1314,67 @@ function renderSubtree(node, path, level){
 }
 
 function renderCard(n, path, level){
-  const pKey = {high:'hi',medium:'md',low:'lo'}[n.priority]||'md';
+  const lv = 'lv' + (level % 6);
+  const pKey = {high:'hi',medium:'md',low:'lo'}[n.priority] || 'md';
+  const pTxt = {high:'Высокий',medium:'Средний',low:'Низкий'}[n.priority] || n.priority;
+  const sKey = {done:'ok',in_progress:'prog',review:'',planning:''}[n.status] || '';
+  const sTxt = {planning:'Планирование',in_progress:'В работе',review:'На проверке',done:'Готово'}[n.status] || n.status;
   const kids = n.childrenH.length + n.childrenV.length;
-  const late = n.deadline && n.status!=='done' && new Date(n.deadline)<new Date(new Date().toDateString());
+  const late = n.deadline && n.status!=='done' && new Date(n.deadline) < new Date(new Date().toDateString());
   const ps = JSON.stringify(path).replace(/"/g,'&quot;');
-  const doneCls = n.status==='done' ? ' status-done' : '';
-  const overdueCls = late ? ' overdue' : '';
-  const assignees = Array.isArray(n.assignees)?n.assignees:(n.assignee?[n.assignee]:[]);
-  const aHtml = assignees.length
-    ? `<span class="chip chip-a">👤 ${esc(assignees.slice(0,2).join(', '))}${assignees.length>2?' +':''}</span>`
-    : '';
-  const dHtml = n.deadline
-    ? `<span class="chip chip-d${late?' chip-late':''}">📅 ${esc(n.deadline)}</span>`
-    : '';
-  const sSel = `<select class="chip chip-s chip-${pKey} status-sel" data-path="${ps}" data-field="status" aria-label="Статус">
-    <option value="planning"${n.status==='planning'?' selected':''}>Планирование</option>
-    <option value="in_progress"${n.status==='in_progress'?' selected':''}>В работе</option>
-    <option value="review"${n.status==='review'?' selected':''}>На проверке</option>
-    <option value="done"${n.status==='done'?' selected':''}>Готово</option>
-  </select>`;
-  return `<div class="card${doneCls}${overdueCls}" draggable="true" data-path="${ps}" data-prio="${n.priority||'medium'}" data-status="${n.status||'planning'}">
+
+  return `<div class="card ${lv} ${n.status==='done'?'done':''}" draggable="true" data-path="${ps}">
     <div class="dropzones">
       <div class="dz" data-dz="V" data-path="${ps}">↓ вложить<br>подпунктом</div>
       <div class="dz" data-dz="H" data-path="${ps}">→ вложить<br>подзадачей</div>
     </div>
     <div class="card-top">
-      <div class="card-title">${esc(n.title||'Без названия')}</div>
-      ${kids ? `<button class="collapse-btn" data-collapse="${ps}">${n.collapsed?'+'+kids:'−'}</button>` : ''}
+      <div class="title">${esc(n.title)}</div>
+      ${kids?`<button class="collapse" data-act="toggle" data-path="${ps}">${n.collapsed?'+'+kids:'−'}</button>`:''}
     </div>
-    <div class="card-meta">${sSel}${aHtml}${dHtml}</div>
+    ${n.desc?`<div class="desc">${esc(n.desc)}</div>`:''}
+    <div class="meta-row">
+      <select class="mini ${pKey}" data-act="set-priority" data-path="${ps}" title="Приоритет">
+        <option value="high"   ${n.priority==='high'?'selected':''}>🔴 Высокий</option>
+        <option value="medium" ${n.priority==='medium'?'selected':''}>🟠 Средний</option>
+        <option value="low"    ${n.priority==='low'?'selected':''}>🔵 Низкий</option>
+      </select>
+      <select class="mini st-${n.status}" data-act="set-status" data-path="${ps}" title="Статус">
+        <option value="planning"    ${n.status==='planning'?'selected':''}>Планирование</option>
+        <option value="in_progress" ${n.status==='in_progress'?'selected':''}>В работе</option>
+        <option value="review"      ${n.status==='review'?'selected':''}>На проверке</option>
+        <option value="done"        ${n.status==='done'?'selected':''}>Готово</option>
+      </select>
+      ${n.owner?`<span class="chip grow" title="Ответственный: ${esc(n.owner)}">👤 ${esc(n.owner)}</span>`:''}
+      ${n.role?`<span class="chip grow" title="Роль: ${esc(n.role)}">🎯 ${esc(n.role)}</span>`:''}
+      ${n.deadline?`<span class="chip ${late?'late':''}" title="Дедлайн">📅 ${esc(n.deadline)}</span>`:''}
+    </div>
     <div class="card-actions">
-      <button class="act" data-act="add-v" data-path="${ps}">↓ подпункт</button>
-      <button class="act" data-act="add-h" data-path="${ps}">→ подзадача</button>
-      <label class="done-box"><input type="checkbox" data-path="${ps}" data-field="done"${n.status==='done'?' checked':''}> Готово</label>
-      <button class="act act-icon" data-act="comment" data-path="${ps}" title="Комментарий">💬</button>
-      <button class="act act-icon" data-act="edit" data-path="${ps}" title="Редактировать">✏️</button>
-      <button class="act act-icon act-del" data-act="delete" data-path="${ps}" title="Удалить">🗑</button>
+      <button class="act add-v" data-act="add-v" data-path="${ps}" title="Добавить подпункт (вниз)">↓ подпункт</button>
+      <button class="act add-h" data-act="add-h" data-path="${ps}" title="Добавить подзадачу (вбок)">→ подзадача</button>
+      <label class="done-box ${n.status==='done'?'on':''}" title="Отметить выполненным">
+        <input type="checkbox" data-act="set-done" data-path="${ps}" ${n.status==='done'?'checked':''}>
+        Готово
+      </label>
+      <span class="act-sep"></span>
+      <button class="act ico" data-act="cmt" data-path="${ps}" title="Комментарии">💬${n.comments.length?' '+n.comments.length:''}</button>
+      <button class="act ico" data-act="edit" data-path="${ps}" title="Редактировать">✏️</button>
+      <button class="act ico del" data-act="del" data-path="${ps}" title="Удалить">🗑</button>
+    </div>
+    <div class="cmt">
+      <div class="cmt-body" id="cb-${n.id}">
+        <div class="cmt-list">${n.comments.map(c=>`
+          <div class="cmt-one">
+            <div class="who">${esc(c.who)}</div>
+            <div class="txt">${esc(c.txt)}</div>
+            <div class="when">${esc(c.when)}</div>
+          </div>`).join('') || '<div class="when" style="font-size:11px;color:var(--ink-3)">Пока нет комментариев</div>'}
+        </div>
+        <div class="cmt-form">
+          <input id="ci-${n.id}" placeholder="Написать…">
+          <button data-act="cmt-add" data-path="${ps}">→</button>
+        </div>
+      </div>
     </div>
   </div>`;
 }
@@ -1462,17 +1422,13 @@ document.getElementById('tree').addEventListener('click', e=>{
   else if(act==='toggle'){ node.collapsed = !node.collapsed; save(); render(); }
   else if(act==='done'){ node.status = node.status==='done' ? 'in_progress' : 'done'; save(); render(); }
   else if(act==='del'){
-    const snap = JSON.parse(JSON.stringify(p));
-    const title = node.title || 'Без названия';
-    const parentPath = path.slice(0,-1);
-    const last = path[path.length-1];
-    const list = getList(p, parentPath, last.k);
-    list.splice(last.i,1);
-    save(); render();
-    showToast('Удалено: «'+title.slice(0,30)+(title.length>30?'…':'')+'»', ()=>{
-      const idx=state.projects.findIndex(x=>x.id===p.id);
-      if(idx>=0){ state.projects[idx]=snap; currentId=snap.id; save(); render(); }
-    });
+    if(confirm('Удалить «'+node.title+'» и все вложенные ветки?')){
+      const parentPath = path.slice(0,-1);
+      const last = path[path.length-1];
+      const list = getList(p, parentPath, last.k);
+      list.splice(last.i,1);
+      save(); render();
+    }
   }
   else if(act==='cmt'){
     const body = document.getElementById('cb-'+node.id);
@@ -1811,115 +1767,6 @@ document.getElementById('btnDemo').onclick = ()=>{
 
 render();
 applyZoom();
-
-/* ═══ ТОСТ ═══ */
-let _toastTmr = null;
-function showToast(msg, undoFn) {
-  const t = document.getElementById('toast');
-  const tx = document.getElementById('toastTxt');
-  const ub = document.getElementById('toastUndo');
-  clearTimeout(_toastTmr);
-  tx.textContent = msg;
-  ub.style.display = undoFn ? 'inline' : 'none';
-  ub.onclick = () => { t.classList.remove('show'); clearTimeout(_toastTmr); undoFn && undoFn(); };
-  t.classList.add('show');
-  _toastTmr = setTimeout(() => t.classList.remove('show'), 5000);
-}
-
-/* ═══ OVERFLOW MENU ═══ */
-document.getElementById('btnOverflow').onclick = e => {
-  e.stopPropagation();
-  document.getElementById('ovfMenu').classList.toggle('open');
-};
-document.addEventListener('click', e => {
-  if (!e.target.closest('#tbOvf')) document.getElementById('ovfMenu').classList.remove('open');
-});
-const _closeOvf = () => document.getElementById('ovfMenu').classList.remove('open');
-
-document.getElementById('btnExpand').onclick = () => {
-  const p = proj(); if (!p) return;
-  (function w(n) { n.collapsed = false; n.childrenH.forEach(w); n.childrenV.forEach(w); })(p);
-  save(); render(); _closeOvf();
-};
-document.getElementById('btnCollapse').onclick = () => {
-  const p = proj(); if (!p) return;
-  (function w(n) {
-    if (n.childrenH.length || n.childrenV.length) n.collapsed = true;
-    n.childrenH.forEach(w); n.childrenV.forEach(w);
-  })(p);
-  save(); render(); _closeOvf();
-};
-document.getElementById('btnExport').onclick = () => {
-  const p = proj(); const d = p || state;
-  const nm = p ? (p.name || 'project') : 'all';
-  const blob = new Blob([JSON.stringify(d, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'roadmap-' + nm.replace(/[^\w\u0400-\u04FF]/g, '-') + '-' + new Date().toISOString().slice(0, 10) + '.json';
-  a.click(); _closeOvf();
-};
-document.getElementById('btnExportAll').onclick = () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'roadmap-all-' + new Date().toISOString().slice(0, 10) + '.json';
-  a.click(); _closeOvf();
-};
-document.getElementById('btnImport').onclick = () => {
-  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
-  inp.onchange = e => {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = ev => {
-      try {
-        const d = JSON.parse(ev.target.result);
-        if (d.id || d.childrenH !== undefined) {
-          if (!d.id) d.id = Date.now().toString(36);
-          const ex = state.projects.findIndex(p => p.id === d.id);
-          if (ex >= 0) state.projects[ex] = d; else state.projects.push(d);
-          currentId = d.id;
-        } else if (d.projects) {
-          d.projects.forEach(p => {
-            const ex = state.projects.findIndex(x => x.id === p.id);
-            if (ex >= 0) state.projects[ex] = p; else state.projects.push(p);
-          });
-        }
-        save(); render();
-        showToast('Импортировано');
-      } catch (ex) { alert('Не удалось импортировать: ' + ex.message); }
-    };
-    r.readAsText(f);
-  };
-  inp.click(); _closeOvf();
-};
-
-/* ═══ ПОИСК ═══ */
-let _srchQ = '';
-function applySearch() {
-  const q = _srchQ.toLowerCase().trim();
-  const tree = document.getElementById('tree'); if (!tree) return;
-  tree.querySelectorAll('.card').forEach(card => {
-    const ttl = card.querySelector('.card-title'); if (!ttl) return;
-    if (!q) {
-      card.classList.remove('srch-hide');
-      ttl.innerHTML = esc(ttl.textContent);
-      return;
-    }
-    if (ttl.textContent.toLowerCase().includes(q)) {
-      card.classList.remove('srch-hide');
-      ttl.innerHTML = esc(ttl.textContent).replace(
-        new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'),
-        '<mark class="hl">$1</mark>');
-    } else {
-      card.classList.add('srch-hide');
-    }
-  });
-}
-document.getElementById('searchInput').addEventListener('input', function () {
-  _srchQ = this.value; applySearch();
-});
-document.getElementById('searchClear').addEventListener('click', () => {
-  document.getElementById('searchInput').value = ''; _srchQ = ''; applySearch();
-});
-
 cloudInit();
 
 /* при первом показе проекта подводим вид к корневой плашке */
@@ -1958,6 +1805,5 @@ render = function(){
   window.addEventListener('pointerup', ()=>{ on=false; st.style.cursor=''; });
 })();
 </script>
-<div class="toast" id="toast"><span id="toastTxt"></span><button class="toast-undo" id="toastUndo" style="display:none">Вернуть</button></div>
 </body>
 </html>
