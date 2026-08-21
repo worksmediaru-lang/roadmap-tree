@@ -823,6 +823,27 @@ function showGate(on){
   document.getElementById('authGate').classList[on?'add':'remove']('show');
 }
 function myRole(pid){ return CLOUD.roles[pid] || 'editor'; }
+function isOwner(pid){ return CLOUD.roles[pid] === 'owner'; }
+
+/* Проверяет ownerUid в базе и восстанавливает роль если нужно.
+   Возвращает Promise<boolean> — true если мы владелец */
+function checkOwnerAndRestore(pid){
+  if(!CLOUD.db || !CLOUD.user) return Promise.resolve(false);
+  return CLOUD.db.ref('projects/'+pid+'/meta/ownerUid').once('value').then(s => {
+    const isOwnerByMeta = (s.val() === CLOUD.user.uid);
+    if(isOwnerByMeta && CLOUD.roles[pid] !== 'owner'){
+      CLOUD.roles[pid] = 'owner';
+      const u = CLOUD.user;
+      CLOUD.db.ref('projects/'+pid+'/members/'+u.uid).set({
+        role:'owner', email:u.email||'', name:u.displayName||'',
+        photo:u.photoURL||'', token:'', joinedAt:Date.now()
+      }).then(() => CLOUD.db.ref('userIndex/'+u.uid+'/'+pid+'/role').set('owner').catch(()=>{}))
+        .catch(err => console.error('[owner] не удалось восстановить:', err));
+      console.log('[cloud] роль владельца восстановлена (checkOwner):', pid);
+    }
+    return isOwnerByMeta || CLOUD.roles[pid] === 'owner';
+  }).catch(() => CLOUD.roles[pid] === 'owner');
+}
 function canEdit(pid){ return myRole(pid) !== 'viewer'; }
 
 /* ---------- init ---------- */
@@ -1249,37 +1270,89 @@ function openInvites(){
   renderMembers(p.id);
 }
 function renderMembers(pid){
-  const box=document.getElementById('invMembers');
-  box.textContent='загрузка…';
-  CLOUD.db.ref('projects/'+pid+'/members').once('value').then(s=>{
-    const m=s.val()||{};
-    const keys=Object.keys(m);
-    if(!keys.length){ box.textContent='никого нет'; return; }
-    const mine = m[CLOUD.user.uid] || {};
-    if(mine.role) CLOUD.roles[pid] = mine.role;
-    const iAmOwner = (mine.role==='owner') || (myRole(pid)==='owner');
-    box.innerHTML = keys.map(uid=>{
-      const x=m[uid]||{};
-      const role = x.role==='owner'?'владелец':x.role==='viewer'?'чтение':'редактор';
-      const kick = (iAmOwner && uid!==CLOUD.user.uid)
-        ? '<button class="kick" data-kick="'+uid+'">Отключить</button>' : '';
-      return '<div class="mem">'+
-        (x.photo?'<img src="'+esc(x.photo)+'" alt="">':'<img alt="">')+
-        '<div><div class="nm">'+esc(x.name||'без имени')+'</div><div class="em">'+esc(x.email||'')+'</div></div>'+
-        '<span class="rl '+(x.role==='owner'?'owner':'')+'">'+role+'</span>'+kick+'</div>';
-    }).join('');
-    try{ renderContacts(pid); }catch(e){}
-    box.querySelectorAll('[data-kick]').forEach(b=>{
-      b.onclick=()=>{
-        const t=b.dataset.kick;
-        if(!confirm('Отключить участника от проекта?')) return;
-        CLOUD.db.ref('projects/'+pid+'/members/'+t).remove()
-          .then(()=>CLOUD.db.ref('userIndex/'+t+'/'+pid).remove().catch(()=>{}))
-          .then(()=>{ renderMembers(pid); renderContacts(pid); })
-          .catch(e=>alert('Не удалось: '+e.message));
-      };
+  const box = document.getElementById('invMembers');
+  box.textContent = 'загрузка…';
+
+  // Сначала проверяем meta.ownerUid — это источник истины
+  CLOUD.db.ref('projects/'+pid+'/meta/ownerUid').once('value').then(ownerSnap => {
+    const ownerUid = ownerSnap.val();
+    const isOwnerByMeta = (ownerUid === CLOUD.user.uid);
+
+    // Если мы владелец по meta, но роль съехала — восстанавливаем
+    if(isOwnerByMeta && CLOUD.roles[pid] !== 'owner'){
+      CLOUD.roles[pid] = 'owner';
+      const u = CLOUD.user;
+      CLOUD.db.ref('projects/'+pid+'/members/'+u.uid).set({
+        role:'owner', email:u.email||'', name:u.displayName||'',
+        photo:u.photoURL||'', token:'', joinedAt:Date.now()
+      }).then(()=>{
+        CLOUD.db.ref('userIndex/'+u.uid+'/'+pid+'/role').set('owner').catch(()=>{});
+        console.log('[members] роль владельца восстановлена:', pid);
+      }).catch(err => console.error('[members] не удалось восстановить owner:', err));
+    }
+
+    return CLOUD.db.ref('projects/'+pid+'/members').once('value').then(s => {
+      const m = s.val() || {};
+      const keys = Object.keys(m);
+      if(!keys.length){ box.textContent='никого нет'; return; }
+
+      const mine = m[CLOUD.user.uid] || {};
+      // Владелец = по meta ИЛИ по роли в базе
+      const iAmOwner = isOwnerByMeta || mine.role === 'owner' || myRole(pid) === 'owner';
+
+      // Обновляем роль в памяти
+      if(mine.role) CLOUD.roles[pid] = mine.role;
+      if(iAmOwner) CLOUD.roles[pid] = 'owner';
+
+      box.innerHTML = keys.map(uid => {
+        const x = m[uid] || {};
+        const roleLabel = x.role==='owner' ? 'владелец' : x.role==='viewer' ? 'чтение' : 'редактор';
+        const kick = (iAmOwner && uid !== CLOUD.user.uid)
+          ? '<button class="kick" data-kick="'+uid+'">Отключить</button>'
+          : '';
+        // Кнопка смены роли (только для не-владельцев, только owner может менять)
+        const changeRole = (iAmOwner && uid !== CLOUD.user.uid && x.role !== 'owner')
+          ? '<select class="cr" data-uid="'+uid+'" data-pid="'+pid+'">'
+            + '<option value="editor"'+(x.role==='editor'?' selected':'')+'>Редактор</option>'
+            + '<option value="viewer"'+(x.role==='viewer'?' selected':'')+'>Чтение</option>'
+            + '</select>'
+          : '';
+        return '<div class="mem">'
+          + (x.photo ? '<img src="'+esc(x.photo)+'" alt="">' : '<img alt="">')
+          + '<div><div class="nm">'+esc(x.name||'—')+'</div>'
+          + '<div class="em">'+esc(x.email||'')+'</div></div>'
+          + '<span class="rl '+(x.role==='owner'?'owner':'')+'">'+roleLabel+'</span>'
+          + changeRole + kick
+          + '</div>';
+      }).join('');
+
+      // Обработчики kick
+      box.querySelectorAll('[data-kick]').forEach(b => {
+        b.onclick = () => {
+          const t = b.dataset.kick;
+          if(!confirm('Отключить участника от проекта?')) return;
+          CLOUD.db.ref('projects/'+pid+'/members/'+t).remove()
+            .then(() => CLOUD.db.ref('userIndex/'+t+'/'+pid).remove().catch(()=>{}))
+            .then(() => { renderMembers(pid); try{renderContacts(pid);}catch(e){} })
+            .catch(e => alert('Не удалось: '+e.message));
+        };
+      });
+
+      // Обработчики смены роли
+      box.querySelectorAll('select.cr').forEach(sel => {
+        sel.onchange = () => {
+          const uid2 = sel.dataset.uid, pid2 = sel.dataset.pid;
+          const newRole = sel.value;
+          CLOUD.db.ref('projects/'+pid2+'/members/'+uid2+'/role').set(newRole)
+            .then(() => CLOUD.db.ref('userIndex/'+uid2+'/'+pid2+'/role').set(newRole).catch(()=>{}))
+            .catch(e => { alert('Не удалось: '+e.message); renderMembers(pid2); });
+        };
+      });
     });
-  }).catch(e=>{ box.textContent='нет доступа к списку участников'; console.error(e); });
+  }).catch(e => { 
+    box.textContent = 'ошибка загрузки'; 
+    console.error('[renderMembers]', e); 
+  });
 }
 let zoom = 1;
 
