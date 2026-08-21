@@ -83,22 +83,22 @@ input,textarea,select{font-family:inherit}
 .zoombar .lbl{font-size:12px;color:var(--ink-3);width:44px;text-align:center;font-weight:600}
 
 /* ---------- SUBTREE / CONNECTORS ---------- */
-.subtree{display:flex;flex-direction:column;align-items:center}
-.column{width:auto;min-width:var(--card-w);display:flex;flex-direction:column;align-items:stretch}
+.subtree{display:flex;flex-direction:column;align-items:flex-start}
+.column{width:auto;min-width:var(--card-w);display:flex;flex-direction:column;align-items:flex-start}
 
 /* horizontal children (org-chart row) */
 /* ствол от родителя вниз: 18px, затем поперечина, затем 13px до карточки */
-.branch-h{display:flex;justify-content:center;position:relative;padding-top:18px}
-.branch-h::before{content:"";position:absolute;top:0;left:50%;width:2px;height:18px;background:var(--line);transform:translateX(-1px)}
+.branch-h{display:flex;justify-content:flex-start;align-items:flex-start;position:relative;padding-top:18px}
+.branch-h::before{content:"";position:absolute;top:0;left:calc(var(--card-w)/2);width:2px;height:18px;background:var(--line);transform:translateX(-1px)}
 .h-item{position:relative;padding:20px 9px 0}
 .h-item::before,.h-item::after{content:"";position:absolute;top:0;height:2px;background:var(--line)}
-.h-item::before{right:50%;left:0}
-.h-item::after{left:50%;right:0}
+.h-item::before{right:calc(100% - 9px - var(--card-w)/2);left:0}
+.h-item::after{left:calc(9px + var(--card-w)/2);right:0}
 .h-item:first-child::before{display:none}
 .h-item:last-child::after{display:none}
-.h-stem{position:absolute;top:0;left:50%;width:2px;height:13px;background:var(--line);transform:translateX(-1px)}
-.h-stem::after{content:"";position:absolute;left:-5px;top:13px;width:12px;height:7px;
-  background:var(--line);clip-path:polygon(0 0,100% 0,50% 100%)}
+.h-stem{position:absolute;top:0;left:calc(9px + var(--card-w)/2);width:2px;height:13px;background:var(--line);transform:translateX(-1px)}
+.h-stem::after{content:"";position:absolute;left:-5px;top:13px;
+  border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--line)}
 
 /* vertical children: жёлоб 30px, рельс обрывается на последнем потомке,
    локоть + остриё стрелки целиком в жёлобе, до плашки остаётся зазор 4px */
@@ -118,21 +118,22 @@ input,textarea,select{font-family:inherit}
 }
 /* остриё вправо, кончик в -4px — плашку не касается */
 .v-item::after{
-  content:"";position:absolute;left:-12px;top:17px;width:8px;height:10px;
-  background:var(--line);clip-path:polygon(0 0,100% 50%,0 100%);z-index:1
+  content:"";position:absolute;left:-11px;top:15px;width:0;height:0;
+  border-top:6px solid transparent;border-bottom:6px solid transparent;
+  border-left:7px solid var(--line);z-index:1
 }
 
 /* H-ветки глубоких уровней: вертикальный стек со сдвигом вправо */
 .branch-hv{margin-left:12px}
 .branch-hv > .v-item > .seg,
 .branch-hv > .v-item::before{background:var(--hv-line)}
-.branch-hv > .v-item::after{background:var(--hv-line)}
-.hv-tag{position:absolute;left:-27px;top:12px;z-index:3;font-size:9px;font-weight:800;
+.branch-hv > .v-item::after{border-left-color:var(--hv-line)}
+.hv-tag{position:absolute;left:-30px;top:2px;z-index:3;font-size:9px;font-weight:800;
   color:var(--hv-line);pointer-events:none;line-height:1}
 
 /* ---------- CARDS ---------- */
 .card{
-  width:var(--card-w);
+  width:var(--card-w);flex:0 0 auto;
   border-radius:var(--radius);
   z-index:2;
   padding:10px 12px 9px;
@@ -332,58 +333,96 @@ body.dragging .drag-hint{display:block}
 .modal-foot{display:flex;gap:8px;margin-top:6px}
 .modal-foot .btn{flex:1;justify-content:center;text-align:center}
 
+@media (max-width:900px){
+  /* глубокие горизонтальные ветки тоже вертикально — иначе не влезает */
+  .branch-h{flex-direction:column;align-items:flex-start;padding-top:12px;margin-left:14px}
+  .branch-h::before{left:12px;height:12px}
+  .h-item{padding:12px 0 0 28px;margin-top:6px}
+  .h-item:first-child{margin-top:0}
+  .h-item::before,.h-item::after{display:none}
+  .h-stem{left:12px;top:0;height:100%;width:2px}
+  .h-stem::after{left:-4px;top:22px;border-left:5px solid transparent;border-right:5px solid transparent;
+    border-top:6px solid var(--line);transform:rotate(-90deg)}
+}
+
 @media (max-width:760px){
-  :root{--card-w:290px}
-  .topbar{flex-wrap:wrap;padding:10px 12px;gap:8px}
-  .brand{font-size:13px}
-  .brand small{font-size:10px}
-  .btn,.btn.primary,.btn.sm{padding:8px 12px;font-size:11.5px}
-  .select{min-width:120px;padding:8px 10px;font-size:12px}
+  :root{--card-w:min(300px, calc(100vw - 84px));--radius:13px}
+
+  .topbar{flex-wrap:wrap;padding:9px 11px;gap:7px;row-gap:8px}
+  .brand{font-size:13px;gap:7px}
+  .brand small{display:none}
+  .btn,.btn.sm,.btn.primary,.btn.ghost.sm{padding:9px 11px;font-size:11.5px;min-height:36px}
+  .select{min-width:0;flex:1 1 130px;padding:9px 10px;font-size:12px;min-height:36px}
   .spacer{display:none}
-  .stage{padding:12px 10px 140px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .card{padding:8px 10px}
-  .card-actions{flex-wrap:wrap;gap:6px}
-  .card-actions .act{padding:5px 8px;font-size:10px}
-  .branch-h{padding-top:14px;gap:8px}
-  .branch-h::before{height:14px}
-  .h-item{padding:16px 6px 0}
-  .h-stem{height:10px}
-  .branch-v{margin-left:14px;padding:10px 0 0 24px}
-  .v-item{margin-top:8px}
-  .v-item > .seg{left:-24px;height:28px}
-  .v-item::before{left:-24px;width:15px;top:19px}
-  .v-item::after{left:-10px;top:15px;width:7px;height:9px}
-  #authGate .gate-card{padding:28px 20px;width:94%;border-radius:16px}
-  .gate-card h2{font-size:18px}
-  .gate-card p{font-size:12px}
-  .inv-card{width:96%;padding:16px;border-radius:16px}
-  .inv-card h3{font-size:16px}
-  .inv-sec{padding:12px;border-radius:12px}
-  .inv-sec h4{font-size:10px}
-  .inv-row input{padding:8px 9px;font-size:12px}
-  .mem{padding:8px 0}
-  .mem img{width:28px;height:28px}
-  .mem .nm{font-size:12px}
+  .userchip{font-size:10.5px;padding:3px 7px 3px 3px}
+  .userchip img{width:19px;height:19px}
+  .userchip button{padding:3px 7px;font-size:9.5px}
+  .syncpill{font-size:10px;padding:4px 8px}
+
+  .stage{padding:14px 10px 130px;-webkit-overflow-scrolling:touch}
+  .tree{min-width:0;justify-content:flex-start}
+
+  .card{padding:9px 11px 8px}
+  .card-actions{flex-wrap:wrap;gap:5px}
+  .card-actions .act{padding:6px 9px;font-size:10px;min-height:30px}
+
+  .branch-v{margin-left:12px;padding:10px 0 0 24px}
+  .v-item{margin-top:9px}
+  .v-item > .seg{left:-24px;top:-9px;height:29px}
+  .v-item:first-child > .seg{top:-11px;height:31px}
+  .v-item::before{left:-24px;top:19px;width:14px}
+  .v-item::after{left:-10px;top:13px;border-top-width:5px;border-bottom-width:5px;border-left-width:6px}
+  .branch-hv{margin-left:8px}
+  .hv-tag{left:-24px;top:1px;font-size:8px}
+
   .project-card{padding:14px}
   .project-card h2{font-size:16px}
-  .pactions .act{padding:7px 10px;font-size:10px}
-  .dropzones,.dz{display:none}
+  .pmeta{grid-template-columns:1fr 1fr;gap:6px}
+  .pactions{flex-wrap:wrap;gap:5px}
+  .pactions .act{padding:8px 10px;font-size:10.5px;min-height:34px}
+
+  /* перетаскивание на тач-экране не работает — прячем подсказки */
+  .dropzones,.dz{display:none !important}
+
+  .gate-card{padding:26px 18px;width:94%;border-radius:16px}
+  .gate-card h2{font-size:19px}
+  .gate-card p{font-size:12.5px;margin-bottom:18px}
+
+  .inv-card{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0;padding:16px 14px 26px}
+  #invOverlay{align-items:stretch}
+  .inv-row{flex-wrap:wrap}
+  .inv-row input,.inv-row select{flex:1 1 100%;min-height:38px;font-size:13px}
+  .inv-btn{flex:1 1 100%;min-height:38px;font-size:12.5px}
+  .inv-link{flex-wrap:wrap}
+  .mem{flex-wrap:wrap;row-gap:6px}
+  .mem .rl{margin-left:auto}
+  .mem .kick,.mem .addc{flex:1 1 100%;margin-left:0;min-height:32px}
+  .mem select.cr{margin-left:auto;min-height:32px}
+
+  /* модалки задач/проекта: во весь экран, поля не мельче 16px — iOS иначе зумит */
+  .modal{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0}
+  .overlay{align-items:stretch}
+  .row{grid-template-columns:1fr}
+  .field input,.field select,.field textarea{font-size:16px;min-height:40px}
+
+  .zoombar{bottom:calc(10px + env(safe-area-inset-bottom));right:10px}
+  .zoombar .btn{min-width:38px;min-height:38px}
 }
 
 @media (max-width:480px){
-  :root{--card-w:260px}
-  .stage{padding:10px 8px 130px}
-  .card{padding:8px 10px}
-  .topbar{padding:8px 10px;gap:6px}
-  .btn,.btn.primary{padding:7px 10px;font-size:10px}
-  .select{font-size:11px;min-width:100px}
-  .project-card{padding:12px}
+  :root{--card-w:min(280px, calc(100vw - 72px))}
+  .stage{padding:11px 8px 120px}
+  .btn,.btn.sm,.btn.primary{padding:8px 9px;font-size:10.5px}
+  .select{font-size:11.5px}
+  .branch-v{margin-left:8px;padding:9px 0 0 21px}
+  .v-item > .seg{left:-21px;height:27px}
+  .v-item::before{left:-21px;width:12px;top:18px}
+  .v-item::after{left:-9px;top:12px}
+  .hv-tag{left:-21px}
   .project-card h2{font-size:15px}
-  .branch-v{margin-left:10px;padding:8px 0 0 20px}
-  .v-item > .seg{left:-20px;height:24px}
-  .v-item::before{left:-20px;width:12px;top:17px}
-  .v-item::after{left:-9px;top:13px}
+  .pmeta{grid-template-columns:1fr}
 }
+
 </style>
 
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
@@ -802,18 +841,6 @@ function subProject(pid){
   const pr = CLOUD.db.ref('projects/'+pid+'/presence/'+CLOUD.sid);
   pr.onDisconnect().remove();
   pr.set({name:(CLOUD.user.displayName||CLOUD.user.email||'—'), ts:Date.now()});
-  CLOUD.db.ref('projects/'+pid+'/meta/ownerUid').once('value').then(s=>{
-    if(s.val()===CLOUD.user.uid && CLOUD.roles[pid]!=='owner'){
-      const u=CLOUD.user;
-      CLOUD.roles[pid]='owner';
-      CLOUD.db.ref('projects/'+pid+'/members/'+u.uid).set({
-        role:'owner', email:u.email||'', name:u.displayName||'', photo:u.photoURL||'',
-        token:'', joinedAt:Date.now()
-      }).catch(()=>{});
-      CLOUD.db.ref('userIndex/'+u.uid+'/'+pid+'/role').set('owner').catch(()=>{});
-      console.log('[cloud] роль владельца восстановлена:', pid);
-    }
-  }).catch(()=>{});
   CLOUD.db.ref('projects/'+pid+'/presence').on('value', s=>{
     CLOUD.peers[pid]=s.numChildren(); if(pid===currentId) pillLive();
   });
@@ -921,23 +948,14 @@ function claimInvite(token){
     const mine=(u.email||'').toLowerCase();
     if(inv.email && inv.email!==mine)
       throw new Error('Приглашение выписано на '+inv.email+', а вы вошли как '+(mine||'—')+'.');
-    return db.ref('projects/'+inv.pid+'/members/'+u.uid).once('value').then(ex=>{
-      const cur = ex.val();
-      if(cur){
-        CLOUD.roles[inv.pid] = cur.role||'editor';
-        return db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-          name: inv.pname||'Проект', role: cur.role||'editor', ts: Date.now()
-        });
-      }
-      return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
-          role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
-          photo:u.photoURL||'', token: token, joinedAt: Date.now()
-        })
-        .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-          name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
-        }))
-        .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; });
-    }).then(()=>{ currentId=inv.pid; return inv; });
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+        role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
+        photo:u.photoURL||'', token: token, joinedAt: Date.now()
+      })
+      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+        name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
+      }))
+      .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; currentId=inv.pid; return inv; });
   });
 }
 /* ---------- знакомые люди из других проектов ---------- */
@@ -1038,23 +1056,14 @@ function claimGuest(tok){
     if(!inv) throw new Error('Приглашение не найдено — ссылка неверна или проект удалён.');
     if(inv.type !== 'guest') throw new Error('Это ссылка для входа через Google, а не гостевая.');
     if(inv.active !== true) throw new Error('Гостевая ссылка отозвана.');
-    return db.ref('projects/'+inv.pid+'/members/'+u.uid).once('value').then(ex=>{
-      const cur = ex.val();
-      if(cur){ /* уже участник — роль не трогаем */
-        CLOUD.roles[inv.pid] = cur.role||'editor';
-        return db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-          name: inv.pname||'Проект', role: cur.role||'editor', ts: Date.now()
-        });
-      }
-      return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
-          role: inv.role||'viewer', email:'', name:'Гость', photo:'',
-          token: tok, addedVia:'guestLink', joinedAt: Date.now()
-        })
-        .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-          name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
-        }))
-        .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; });
-    }).then(()=>{ currentId = inv.pid; return inv; });
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+        role: inv.role||'viewer', email:'', name:'Гость', photo:'',
+        token: tok, addedVia:'guestLink', joinedAt: Date.now()
+      })
+      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+        name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
+      }))
+      .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; currentId = inv.pid; return inv; });
   });
 }
 function applyGuestUI(){
@@ -1073,7 +1082,6 @@ function openInvites(){
   document.getElementById('invEmail').value='';
   document.getElementById('invOverlay').classList.add('show');
   renderMembers(p.id);
-  renderContacts(p.id);
 }
 function renderMembers(pid){
   const box=document.getElementById('invMembers');
@@ -1082,7 +1090,9 @@ function renderMembers(pid){
     const m=s.val()||{};
     const keys=Object.keys(m);
     if(!keys.length){ box.textContent='никого нет'; return; }
-    const iAmOwner = myRole(pid)==='owner';
+    const mine = m[CLOUD.user.uid] || {};
+    if(mine.role) CLOUD.roles[pid] = mine.role;
+    const iAmOwner = (mine.role==='owner') || (myRole(pid)==='owner');
     box.innerHTML = keys.map(uid=>{
       const x=m[uid]||{};
       const role = x.role==='owner'?'владелец':x.role==='viewer'?'чтение':'редактор';
@@ -1093,6 +1103,7 @@ function renderMembers(pid){
         '<div><div class="nm">'+esc(x.name||'без имени')+'</div><div class="em">'+esc(x.email||'')+'</div></div>'+
         '<span class="rl '+(x.role==='owner'?'owner':'')+'">'+role+'</span>'+kick+'</div>';
     }).join('');
+    try{ renderContacts(pid); }catch(e){}
     box.querySelectorAll('[data-kick]').forEach(b=>{
       b.onclick=()=>{
         const t=b.dataset.kick;
