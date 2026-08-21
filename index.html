@@ -84,19 +84,23 @@ input,textarea,select{font-family:inherit}
 
 /* ---------- SUBTREE / CONNECTORS ---------- */
 .subtree{display:flex;flex-direction:column;align-items:flex-start}
+/* корень: проектная плашка центрируется над рядом направлений */
+.subtree.sub-root{align-items:center}
 .column{width:auto;min-width:var(--card-w);display:flex;flex-direction:column;align-items:flex-start}
 
 /* horizontal children (org-chart row) */
 /* ствол от родителя вниз: 18px, затем поперечина, затем 13px до карточки */
-.branch-h{display:flex;justify-content:flex-start;align-items:flex-start;position:relative;padding-top:18px}
+.branch-h{display:flex;justify-content:flex-start;align-items:flex-start;gap:18px;position:relative;padding-top:18px}
+.branch-h.h-root{justify-content:center}
 .branch-h::before{content:"";position:absolute;top:0;left:calc(var(--card-w)/2);width:2px;height:18px;background:var(--line);transform:translateX(-1px)}
-.h-item{position:relative;padding:20px 9px 0}
+.branch-h.h-root::before{left:50%}
+.h-item{position:relative;padding:20px 0 0}
 .h-item::before,.h-item::after{content:"";position:absolute;top:0;height:2px;background:var(--line)}
-.h-item::before{right:calc(100% - 9px - var(--card-w)/2);left:0}
-.h-item::after{left:calc(9px + var(--card-w)/2);right:0}
+.h-item::before{right:calc(100% - var(--card-w)/2);left:-18px}
+.h-item::after{left:calc(var(--card-w)/2);right:-18px}
 .h-item:first-child::before{display:none}
 .h-item:last-child::after{display:none}
-.h-stem{position:absolute;top:0;left:calc(9px + var(--card-w)/2);width:2px;height:13px;background:var(--line);transform:translateX(-1px)}
+.h-stem{position:absolute;top:0;left:calc(var(--card-w)/2);width:2px;height:13px;background:var(--line);transform:translateX(-1px)}
 .h-stem::after{content:"";position:absolute;left:-5px;top:13px;
   border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--line)}
 
@@ -349,48 +353,45 @@ body.dragging .drag-hint{display:block}
 }
 
 @media (max-width:760px){
-  :root{--radius:13px}
+  :root{--card-w:270px;--radius:13px}
 
-  .topbar{flex-wrap:wrap;padding:9px 11px;gap:7px;row-gap:8px}
+  .topbar{flex-wrap:wrap;padding:8px 10px;gap:6px;row-gap:7px}
   .brand{font-size:13px;gap:7px}
   .brand small{display:none}
-  .btn,.btn.sm,.btn.primary,.btn.ghost.sm{padding:9px 11px;font-size:11.5px;min-height:36px}
-  .select{min-width:0;flex:1 1 130px;padding:9px 10px;font-size:12px;min-height:36px}
+  .btn,.btn.sm,.btn.primary,.btn.ghost.sm{padding:8px 10px;font-size:11.5px;min-height:34px}
+  .select{min-width:0;flex:1 1 120px;padding:8px 10px;font-size:12px;min-height:34px}
   .spacer{display:none}
   .userchip{font-size:10.5px;padding:3px 7px 3px 3px}
   .userchip img{width:19px;height:19px}
   .userchip button{padding:3px 7px;font-size:9.5px}
   .syncpill{font-size:10px;padding:4px 8px}
 
-  .stage{padding:14px 10px 130px;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-  .tree{min-width:0;width:100%;justify-content:flex-start}
-  .subtree{align-items:stretch;width:100%}
-  .column{width:100%;min-width:0}
-  .card{width:auto;max-width:100%;padding:9px 11px 8px}
-  .card-actions{flex-wrap:wrap;gap:5px}
+  /* дерево остаётся широким — листаем пальцем в обе стороны */
+  .stage{padding:14px 12px 120px;overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
+  .tree{min-width:max-content}
+
+  .card-actions{gap:5px}
   .card-actions .act{padding:6px 9px;font-size:10px;min-height:30px}
 
-  .branch-v{margin-left:0;padding:10px 0 0 20px}
-  .branch-hv{margin-left:0}
-  .v-item{margin-top:9px}
-  .v-item > .seg{left:-20px;top:-9px;height:calc(100% + 9px)}
+  .branch-h{gap:14px}
+  .h-item::before{left:-14px}
+  .h-item::after{right:-14px}
+  .branch-v{margin-left:16px;padding:10px 0 0 24px}
+  .v-item > .seg{left:-24px;top:-9px;height:calc(100% + 9px)}
   .v-item:first-child > .seg{top:-11px;height:calc(100% + 11px)}
-  .v-item:last-child > .seg{height:28px}
-  .v-item:first-child:last-child > .seg{top:-11px;height:30px}
-  .v-item::before{left:-20px;top:19px;width:11px}
-  .v-item::after{left:-9px;top:15px;width:7px;height:9px}
+  .v-item:last-child > .seg{height:30px}
+  .v-item:first-child:last-child > .seg{top:-11px;height:32px}
+  .v-item::before{left:-24px;top:19px;width:14px}
+  .v-item::after{left:-11px;top:15px;width:7px;height:9px}
 
-  .project-card{padding:14px}
-  .project-card h2{font-size:16px}
-  .pmeta{grid-template-columns:1fr 1fr;gap:6px}
-  .pactions{flex-wrap:wrap;gap:5px}
+  .project-card{width:min(640px, calc(100vw - 44px));padding:15px 16px}
+  .project-card h2{font-size:17px}
   .pactions .act{padding:8px 10px;font-size:10.5px;min-height:34px}
 
   .dropzones,.dz{display:none !important}
 
   .gate-card{padding:26px 18px;width:94%;border-radius:16px}
   .gate-card h2{font-size:19px}
-  .gate-card p{font-size:12.5px;margin-bottom:18px}
 
   .inv-card{width:100%;max-width:none;height:100%;max-height:100%;border-radius:0;padding:16px 14px 26px}
   #invOverlay{align-items:stretch}
@@ -408,23 +409,28 @@ body.dragging .drag-hint{display:block}
   .row{grid-template-columns:1fr}
   .field input,.field select,.field textarea{font-size:16px;min-height:40px}
 
-  .zoombar{bottom:calc(10px + env(safe-area-inset-bottom));right:10px}
-  .zoombar .btn{min-width:38px;min-height:38px}
+  .zoombar{right:8px;bottom:calc(8px + env(safe-area-inset-bottom));padding:4px;gap:3px;opacity:.93}
+  .zoombar .btn{min-width:34px;min-height:34px;padding:6px 8px}
+  .zoombar .lbl{font-size:11px;min-width:38px}
 }
 
 @media (max-width:480px){
-  .stage{padding:11px 8px 120px}
+  :root{--card-w:255px}
+  .stage{padding:12px 10px 112px}
   .btn,.btn.sm,.btn.primary{padding:8px 9px;font-size:10.5px}
   .select{font-size:11.5px}
   .card{padding:8px 10px 7px}
-  .branch-v{padding:9px 0 0 17px}
-  .v-item > .seg{left:-17px}
-  .v-item:last-child > .seg{height:26px}
-  .v-item:first-child:last-child > .seg{top:-11px;height:28px}
-  .v-item::before{left:-17px;top:17px;width:9px}
-  .v-item::after{left:-8px;top:13px;width:6px;height:8px}
-  .project-card h2{font-size:15px}
-  .pmeta{grid-template-columns:1fr}
+  .branch-h{gap:12px}
+  .h-item::before{left:-12px}
+  .h-item::after{right:-12px}
+  .branch-v{margin-left:12px;padding:9px 0 0 21px}
+  .v-item > .seg{left:-21px}
+  .v-item:last-child > .seg{height:28px}
+  .v-item:first-child:last-child > .seg{top:-11px;height:30px}
+  .v-item::before{left:-21px;top:18px;width:12px}
+  .v-item::after{left:-10px;top:14px;width:6px;height:8px}
+  .project-card{padding:14px}
+  .project-card h2{font-size:16px}
 }
 
 </style>
@@ -1217,20 +1223,15 @@ function render(){
       </div>
     </div>`;
 
-  const narrow = isNarrow();
   const rootV = p.childrenV.length ? renderVBranch(p.childrenV, [], 0) : '';
   const rootH = p.childrenH.length
-    ? (narrow ? renderHFlat(p.childrenH, [], 0) : renderHBranch(p.childrenH, [], 0))
+    ? renderHBranch(p.childrenH, [], 0).replace('class="branch-h"', 'class="branch-h h-root"')
     : '';
 
-  tree.innerHTML = narrow
-    ? `<div class="subtree">
-        <div class="column" style="width:100%">${head}${rootV}${rootH}</div>
-      </div>`
-    : `<div class="subtree">
-        <div class="column" style="width:640px;max-width:100%">${head}${rootV}</div>
-        ${rootH}
-      </div>`;
+  tree.innerHTML = `<div class="subtree sub-root">
+      <div class="column" style="width:auto;align-items:center">${head}${rootV}</div>
+      ${rootH}
+    </div>`;
 }
 
 function renderHBranch(list, parentPath, level){
@@ -1258,10 +1259,11 @@ function renderVBranch(list, parentPath, level){
   return `<div class="branch-v">${items}</div>`;
 }
 
-/* На телефоне горизонтальных рядов нет вообще: всё уходит вертикальной
-   лесенкой. На десктопе ряд остаётся для первых двух уровней. */
+/* Горизонтальный ряд — для первых двух уровней (1-й и 2-й в интерфейсе).
+   С 3-го уровня ветки уходят вертикальной лесенкой. Одинаково на всех устройствах. */
 function isNarrow(){ return window.innerWidth <= 760; }
-function hFlatFrom(){ return isNarrow() ? 0 : 2; }
+const H_FLAT_FROM = 2;
+function hFlatFrom(){ return H_FLAT_FROM; }
 
 function renderSubtree(node, path, level){
   const card = renderCard(node, path, level);
@@ -1733,12 +1735,41 @@ render();
 applyZoom();
 cloudInit();
 
-/* поворот телефона или смена ширины меняет раскладку дерева */
-let _wasNarrow = isNarrow();
-window.addEventListener('resize', ()=>{
-  const now = isNarrow();
-  if(now !== _wasNarrow){ _wasNarrow = now; try{ render(); }catch(e){} }
-});
+/* при первом показе проекта подводим вид к корневой плашке */
+let _centered = false;
+function centerRoot(force){
+  const st = document.getElementById('stage'), tr = document.getElementById('tree');
+  if(!st || !tr) return;
+  requestAnimationFrame(()=>{
+    const dx = tr.scrollWidth - st.clientWidth;
+    if(dx > 0) st.scrollLeft = dx/2;
+    if(force) st.scrollTop = 0;
+  });
+}
+const _origRender = render;
+render = function(){
+  _origRender.apply(this, arguments);
+  if(!_centered && document.getElementById('tree').children.length){ _centered = true; centerRoot(true); }
+};
+
+/* панорамирование перетаскиванием по пустому месту (мышь и палец) */
+(function(){
+  const st = document.getElementById('stage');
+  if(!st) return;
+  let on=false, sx=0, sy=0, sl=0, stp=0;
+  const interactive = 'button, select, input, textarea, a, .card, .project-card, .zoombar';
+  st.addEventListener('pointerdown', e=>{
+    if(e.target.closest(interactive)) return;
+    on=true; sx=e.clientX; sy=e.clientY; sl=st.scrollLeft; stp=st.scrollTop;
+    st.style.cursor='grabbing';
+  });
+  window.addEventListener('pointermove', e=>{
+    if(!on) return;
+    st.scrollLeft = sl - (e.clientX - sx);
+    st.scrollTop  = stp - (e.clientY - sy);
+  });
+  window.addEventListener('pointerup', ()=>{ on=false; st.style.cursor=''; });
+})();
 </script>
 </body>
 </html>
