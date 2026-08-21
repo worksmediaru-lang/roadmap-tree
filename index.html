@@ -334,12 +334,64 @@ body.dragging .drag-hint{display:block}
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 /* Ключи подставляются при деплое. */
 window.FIREBASE_CONFIG = {"apiKey": "AIzaSyCEuVgatD0Uefh6vVc2VhlczX6qEyIJvGY", "authDomain": "roadmap-tree.firebaseapp.com", "databaseURL": "https://roadmap-tree-default-rtdb.europe-west1.firebasedatabase.app", "projectId": "roadmap-tree", "storageBucket": "roadmap-tree.firebasestorage.app", "messagingSenderId": "789136105311", "appId": "1:789136105311:web:1c603cdb111178fbc760ea"};
 window.FIREBASE_ROOM   = "team";
 </script>
 <style>
+
+/* ==== auth gate + invites ==== */
+#authGate{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#6f7581,#8a909c);}
+#authGate.show{display:flex}
+.gate-card{background:#fff;border-radius:22px;padding:38px 34px;width:420px;max-width:92%;text-align:center;
+  box-shadow:0 30px 80px rgba(10,14,25,.35)}
+.gate-card h2{font-size:22px;font-weight:800;color:#1f2430;margin-bottom:8px}
+.gate-card p{font-size:13.5px;color:#5b6474;line-height:1.55;margin-bottom:22px}
+.gbtn{display:inline-flex;align-items:center;gap:10px;padding:11px 20px;border-radius:12px;cursor:pointer;
+  font-size:14px;font-weight:700;color:#3c4043;background:#fff;border:1px solid #dadce0;transition:.18s;font-family:inherit}
+.gbtn:hover{background:#f7f8f8;box-shadow:0 2px 8px rgba(20,26,40,.14)}
+.gate-err{margin-top:14px;font-size:12.5px;color:#a33636;background:#fdeaea;border:1px solid #f0b6b6;
+  border-radius:10px;padding:9px 12px;display:none;text-align:left}
+.gate-err.show{display:block}
+.userchip{display:inline-flex;align-items:center;gap:7px;padding:4px 9px 4px 4px;border-radius:20px;
+  background:rgba(255,255,255,.86);border:1px solid rgba(20,26,40,.12);font-size:11.5px;font-weight:700;color:#3d4350}
+.userchip img{width:22px;height:22px;border-radius:50%;display:block}
+.userchip button{margin-left:2px;padding:3px 8px;font-size:10.5px;font-weight:700;border-radius:8px;
+  border:1px solid rgba(20,26,40,.14);background:#fff;cursor:pointer;color:#5b6474;font-family:inherit}
+.userchip button:hover{background:#f1f2f5}
+#invOverlay{position:fixed;inset:0;z-index:8000;display:none;align-items:center;justify-content:center;
+  background:rgba(24,28,40,.45);backdrop-filter:blur(5px)}
+#invOverlay.show{display:flex}
+.inv-card{background:#f4f5f7;border-radius:20px;padding:24px;width:560px;max-width:94%;max-height:86vh;overflow:auto;
+  box-shadow:0 30px 80px rgba(10,14,25,.35)}
+.inv-card h3{font-size:18px;font-weight:800;margin-bottom:4px;color:#1f2430}
+.inv-card .sub{font-size:12.5px;color:#8b93a4;margin-bottom:18px}
+.inv-sec{background:#fff;border:1px solid rgba(20,26,40,.09);border-radius:14px;padding:14px;margin-bottom:12px}
+.inv-sec h4{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#8b93a4;margin-bottom:10px}
+.inv-row{display:flex;gap:8px;align-items:center}
+.inv-row input,.inv-row select{flex:1;padding:9px 11px;border-radius:10px;border:1px solid rgba(20,26,40,.14);
+  font-size:13px;font-family:inherit;outline:none;background:#fff;min-width:0}
+.inv-row input:focus{border-color:#4f6bed;box-shadow:0 0 0 3px #e8ecfd}
+.inv-btn{padding:9px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,#5b7cfa,#7b6bf0);
+  color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+.inv-btn.sec{background:#fff;color:#5b6474;border:1px solid rgba(20,26,40,.14)}
+.inv-link{margin-top:10px;display:none;gap:8px}
+.inv-link.show{display:flex}
+.inv-link input{font-size:11.5px;font-family:ui-monospace,Menlo,monospace;background:#f7f8fa}
+.mem{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(20,26,40,.07)}
+.mem:last-child{border-bottom:none}
+.mem img{width:30px;height:30px;border-radius:50%;background:#e3e6ec;flex:0 0 auto}
+.mem .nm{font-size:13px;font-weight:700;color:#1f2430;line-height:1.25}
+.mem .em{font-size:11px;color:#8b93a4}
+.mem .rl{margin-left:auto;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  padding:3px 9px;border-radius:20px;background:#eef0f4;color:#5b6474}
+.mem .rl.owner{background:#e8ecfd;color:#4f6bed}
+.mem .kick{padding:4px 9px;font-size:10.5px;border-radius:8px;border:1px solid #f0b6b6;background:#fff;
+  color:#a33636;cursor:pointer;font-family:inherit}
+.inv-note{font-size:11.5px;color:#8b93a4;line-height:1.5;margin-top:8px}
 .syncpill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;
   letter-spacing:.3px;padding:5px 11px;border-radius:20px;white-space:nowrap;
   background:rgba(255,255,255,.86);border:1px solid rgba(20,26,40,.12);color:#5b6474;
@@ -367,11 +419,56 @@ window.FIREBASE_ROOM   = "team";
   <div class="syncpill local" id="syncPill" title="Состояние синхронизации">
     <span class="bulb"></span><span id="syncTxt">Локально</span><span class="who" id="syncWho"></span>
   </div>
+  <button class="btn sm" id="btnMembers">Участники</button>
+  <span class="userchip" id="userChip" style="display:none"><img id="uPhoto" alt=""><span id="uName"></span><button id="btnSignout">Выйти</button></span>
   <button class="btn ghost sm" id="btnExpand">Развернуть всё</button>
   <button class="btn ghost sm" id="btnCollapse">Свернуть всё</button>
   <button class="btn sm" id="btnDemo">Демо-проект</button>
   <button class="btn sm" id="btnExport">Экспорт</button>
   <button class="btn sm" id="btnImport">Импорт</button>
+</div>
+
+
+<div id="authGate">
+  <div class="gate-card">
+    <h2>Roadmap Tree</h2>
+    <p>Планировщик с общим доступом.<br>Войдите через Google, чтобы открыть свои проекты.</p>
+    <button class="gbtn" id="btnGoogle">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.1 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.2 5.6c4.2-3.9 6.6-9.6 6.6-16.4z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.9-6.2C1 16.5 0 20.1 0 24s1 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.6 2.2-8.7 2.2-6.3 0-11.6-3.6-13.5-8.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+      Войти через Google
+    </button>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+</div>
+
+<div id="invOverlay">
+  <div class="inv-card">
+    <h3>Доступ к проекту</h3>
+    <div class="sub" id="invProjName">—</div>
+
+    <div class="inv-sec">
+      <h4>Пригласить по ссылке</h4>
+      <div class="inv-row">
+        <input id="invEmail" type="email" placeholder="Google-почта (необязательно)">
+        <select id="invRole"><option value="editor">Редактор</option><option value="viewer">Только чтение</option></select>
+        <button class="inv-btn" id="invCreate">Создать</button>
+      </div>
+      <div class="inv-link" id="invLinkBox">
+        <input id="invLink" readonly>
+        <button class="inv-btn sec" id="invCopy">Копировать</button>
+      </div>
+      <div class="inv-note" id="invNote">Если указать почту — ссылка сработает только у этого Google-аккаунта. Без почты подойдёт любому, у кого есть ссылка.</div>
+    </div>
+
+    <div class="inv-sec">
+      <h4>Участники</h4>
+      <div id="invMembers">загрузка…</div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end">
+      <button class="inv-btn sec" id="invClose">Закрыть</button>
+    </div>
+  </div>
 </div>
 
 <div class="stage" id="stage">
@@ -453,104 +550,297 @@ const LS_KEY = 'roadmapTree.v1';
 let state = load();
 let currentId = state.projects[0] ? state.projects[0].id : null;
 
-/* ============ SYNC LAYER (Firebase Realtime DB) ============ */
-const SYNC = {
-  db:null, ref:null, on:false,
-  applying:false,      // идёт применение удалённых данных -> не пишем назад
-  pending:null,        // таймер дебаунса записи
-  lastPushed:'',       // что мы сами отправили последним (гасим эхо)
-  me:(Math.random().toString(36).slice(2,6)),
-  peers:0
+/* ============ CLOUD LAYER: auth + per-project sharing ============ */
+const CLOUD = {
+  user:null, db:null, on:false, applying:false,
+  subs:{}, pend:{}, lastPushed:{}, roles:{}, peers:{},
+  sid: Math.random().toString(36).slice(2,8),
+  pendingInvite:null, idxRef:null
 };
-function syncPill(cls, txt, who){
+function pill(cls, txt, extra){
   const el=document.getElementById('syncPill'); if(!el) return;
   el.className='syncpill '+cls;
   const t=document.getElementById('syncTxt'); if(t) t.textContent=txt;
-  const w=document.getElementById('syncWho'); if(w) w.textContent=who||'';
+  const w=document.getElementById('syncWho'); if(w) w.textContent=extra||'';
 }
-function syncInit(){
+function pillLive(){
+  const n = CLOUD.peers[currentId]||1;
+  pill('live','В сети', n>1 ? ('· '+n) : '');
+}
+function gateErr(msg){
+  const e=document.getElementById('gateErr');
+  if(!e) return;
+  if(msg){ e.textContent=msg; e.classList.add('show'); } else e.classList.remove('show');
+}
+function showGate(on){
+  document.getElementById('authGate').classList[on?'add':'remove']('show');
+}
+function myRole(pid){ return CLOUD.roles[pid] || 'editor'; }
+function canEdit(pid){ return myRole(pid) !== 'viewer'; }
+
+/* ---------- init ---------- */
+function cloudInit(){
   const cfg = window.FIREBASE_CONFIG;
-  if(!cfg || !cfg.databaseURL || String(cfg.apiKey||'').indexOf('YOUR_')===0){
-    syncPill('local','Локально','');
-    console.info('[sync] Firebase не настроен — работаем в localStorage');
+  if(!cfg || !cfg.databaseURL || typeof firebase==='undefined'){
+    pill('local','Локально',''); showGate(false);
+    console.warn('[cloud] Firebase недоступен — локальный режим');
     return;
   }
-  if(typeof firebase==='undefined' || !firebase.initializeApp){
-    syncPill('err','SDK не загрузился','');
-    console.error('[sync] firebase SDK недоступен');
-    return;
-  }
-  try{
-    firebase.initializeApp(cfg);
-    SYNC.db  = firebase.database();
-    SYNC.ref = SYNC.db.ref('rooms/'+(window.FIREBASE_ROOM||'default'));
-    SYNC.on  = true;
+  try{ firebase.initializeApp(cfg); }catch(e){}
+  CLOUD.db = firebase.database();
 
-    // онлайн-присутствие
-    const pres = SYNC.ref.child('presence');
-    const meRef = pres.child(SYNC.me);
-    meRef.onDisconnect().remove();
-    meRef.set(Date.now());
-    setInterval(()=>{ if(SYNC.on) meRef.set(Date.now()); }, 25000);
-    pres.on('value', s=>{
-      SYNC.peers = s.numChildren();
-      if(document.getElementById('syncPill').classList.contains('live')){
-        syncPill('live','В сети', SYNC.peers>1 ? ('· '+SYNC.peers) : '');
-      }
+  const m = location.search.match(/[?&]join=([A-Za-z0-9_-]+)/);
+  if(m) CLOUD.pendingInvite = m[1];
+
+  document.getElementById('btnGoogle').onclick = ()=>{
+    gateErr('');
+    const prov = new firebase.auth.GoogleAuthProvider();
+    prov.setCustomParameters({prompt:'select_account'});
+    firebase.auth().signInWithPopup(prov).catch(err=>{
+      console.error('[auth]', err);
+      const c=err.code||'';
+      if(c.indexOf('unauthorized-domain')>=0)
+        gateErr('Домен не разрешён в Firebase: Authentication → Settings → Authorized domains → добавьте '+location.hostname);
+      else if(c.indexOf('operation-not-allowed')>=0)
+        gateErr('Google-вход не включён: Authentication → Sign-in method → Google → Enable.');
+      else if(c.indexOf('popup-blocked')>=0)
+        gateErr('Браузер заблокировал всплывающее окно. Разрешите popup для этого сайта.');
+      else if(c.indexOf('popup-closed')>=0) gateErr('Окно входа закрыто — попробуйте снова.');
+      else gateErr('Ошибка входа: '+(err.message||c));
     });
-
-    // подписка на данные
-    SYNC.ref.child('doc').on('value', snap=>{
-      const remote = snap.val();
-      if(remote==null){                       // база пуста -> заливаем текущее
-        syncPush(true);
-        syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):'');
-        return;
-      }
-      const raw = typeof remote==='string' ? remote : JSON.stringify(remote);
-      if(raw===SYNC.lastPushed){              // это наша же запись
-        syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):'');
-        return;
-      }
-      let incoming;
-      try{ incoming = typeof remote==='string' ? JSON.parse(remote) : remote; }
-      catch(e){ console.warn('[sync] битые данные',e); return; }
-      if(!incoming || !Array.isArray(incoming.projects)) return;
-
-      SYNC.applying = true;
-      state = incoming;
-      if(!state.projects.some(p=>p.id===currentId)){
-        currentId = state.projects[0] ? state.projects[0].id : null;
-      }
-      localStorage.setItem(LS_KEY, JSON.stringify(state));
-      try{ render(); }catch(e){ console.error(e); }
-      SYNC.applying = false;
-      syncPill('live','Обновлено', SYNC.peers>1?('· '+SYNC.peers):'');
-      setTimeout(()=>syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):''), 900);
-    }, err=>{
-      console.error('[sync] read error', err);
-      syncPill('err','Нет доступа к БД','');
-    });
-
-    syncPill('live','В сети','');
-  }catch(e){
-    console.error('[sync] init failed', e);
-    syncPill('err','Ошибка Firebase','');
-    SYNC.on=false;
-  }
-}
-function syncPush(immediate){
-  if(!SYNC.on || SYNC.applying) return;
-  clearTimeout(SYNC.pending);
-  const doIt = ()=>{
-    const payload = JSON.stringify(state);
-    SYNC.lastPushed = payload;
-    syncPill('saving','Сохраняю…','');
-    SYNC.ref.child('doc').set(payload)
-      .then(()=>syncPill('live','В сети', SYNC.peers>1?('· '+SYNC.peers):''))
-      .catch(e=>{ console.error('[sync] write error',e); syncPill('err','Не сохранилось',''); });
   };
-  immediate ? doIt() : (SYNC.pending = setTimeout(doIt, 350));
+  document.getElementById('btnSignout').onclick = ()=>{
+    Object.keys(CLOUD.subs).forEach(unsubProject);
+    if(CLOUD.idxRef) CLOUD.idxRef.off();
+    firebase.auth().signOut();
+  };
+
+  firebase.auth().onAuthStateChanged(u=>{
+    CLOUD.user = u;
+    if(!u){
+      CLOUD.on=false; CLOUD.roles={}; CLOUD.subs={};
+      state={projects:[]}; currentId=null;
+      try{ render(); }catch(e){}
+      document.getElementById('userChip').style.display='none';
+      pill('local','Не выполнен вход','');
+      showGate(true);
+      return;
+    }
+    CLOUD.on=true;
+    showGate(false);
+    const chip=document.getElementById('userChip');
+    chip.style.display='inline-flex';
+    document.getElementById('uPhoto').src = u.photoURL||'';
+    document.getElementById('uName').textContent = u.displayName || u.email || 'аккаунт';
+    pill('saving','Загружаю проекты…','');
+
+    const go = ()=>watchMyProjects();
+    if(CLOUD.pendingInvite){
+      const tok=CLOUD.pendingInvite; CLOUD.pendingInvite=null;
+      claimInvite(tok)
+        .then(inv=>{ history.replaceState({},'',location.pathname);
+                     pill('live','Доступ получен',''); go(); })
+        .catch(e=>{ alert('Приглашение не сработало.\n\n'+e.message);
+                    history.replaceState({},'',location.pathname); go(); });
+    } else go();
+  });
+}
+
+/* ---------- список моих проектов ---------- */
+function watchMyProjects(){
+  const u=CLOUD.user; if(!u) return;
+  if(CLOUD.idxRef) CLOUD.idxRef.off();
+  CLOUD.idxRef = CLOUD.db.ref('userIndex/'+u.uid);
+  CLOUD.idxRef.on('value', snap=>{
+    const idx = snap.val() || {};
+    const pids = Object.keys(idx);
+    Object.keys(idx).forEach(pid=>{ CLOUD.roles[pid] = (idx[pid]&&idx[pid].role)||'editor'; });
+    Object.keys(CLOUD.subs).forEach(pid=>{ if(pids.indexOf(pid)<0) unsubProject(pid); });
+    pids.forEach(subProject);
+    if(!pids.length){
+      state={projects:[]}; currentId=null;
+      try{ render(); }catch(e){}
+      pill('live','В сети — нет проектов','');
+    }
+  }, err=>{
+    console.error('[cloud] userIndex', err);
+    pill('err','Правила БД закрыли доступ','');
+  });
+}
+function subProject(pid){
+  if(CLOUD.subs[pid]) return;
+  const ref = CLOUD.db.ref('projects/'+pid+'/doc');
+  CLOUD.subs[pid] = ref;
+  ref.on('value', snap=>{
+    const raw = snap.val();
+    if(raw==null) return;
+    if(raw===CLOUD.lastPushed[pid]){ pillLive(); return; }
+    let obj; try{ obj = typeof raw==='string' ? JSON.parse(raw) : raw; }catch(e){ return; }
+    if(!obj || typeof obj!=='object') return;
+    obj.id = pid;
+    CLOUD.applying = true;
+    const k = state.projects.findIndex(x=>x.id===pid);
+    if(k>=0) state.projects[k]=obj; else state.projects.push(obj);
+    if(!currentId || !state.projects.some(p=>p.id===currentId)) currentId = pid;
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    try{ render(); }catch(e){ console.error(e); }
+    CLOUD.applying = false;
+    pillLive();
+  }, err=>{ console.error('[cloud] doc '+pid, err); pill('err','Нет доступа к проекту',''); });
+
+  const pr = CLOUD.db.ref('projects/'+pid+'/presence/'+CLOUD.sid);
+  pr.onDisconnect().remove();
+  pr.set({name:(CLOUD.user.displayName||CLOUD.user.email||'—'), ts:Date.now()});
+  CLOUD.db.ref('projects/'+pid+'/presence').on('value', s=>{
+    CLOUD.peers[pid]=s.numChildren(); if(pid===currentId) pillLive();
+  });
+}
+function unsubProject(pid){
+  if(CLOUD.subs[pid]){ CLOUD.subs[pid].off(); delete CLOUD.subs[pid]; }
+  if(CLOUD.db){
+    CLOUD.db.ref('projects/'+pid+'/presence').off();
+    CLOUD.db.ref('projects/'+pid+'/presence/'+CLOUD.sid).remove().catch(()=>{});
+  }
+  state.projects = state.projects.filter(p=>p.id!==pid);
+  if(currentId===pid) currentId = state.projects[0]?state.projects[0].id:null;
+  try{ render(); }catch(e){}
+}
+
+/* ---------- запись ---------- */
+function pushProject(pid, immediate){
+  if(!CLOUD.on || CLOUD.applying || !pid) return;
+  if(!canEdit(pid)){ pill('err','Только чтение',''); return; }
+  const p = state.projects.find(x=>x.id===pid); if(!p) return;
+  clearTimeout(CLOUD.pend[pid]);
+  const doIt = ()=>{
+    const payload = JSON.stringify(p);
+    CLOUD.lastPushed[pid] = payload;
+    pill('saving','Сохраняю…','');
+    CLOUD.db.ref('projects/'+pid+'/doc').set(payload)
+      .then(()=>{
+        CLOUD.db.ref('userIndex/'+CLOUD.user.uid+'/'+pid+'/name').set(p.name||'Проект').catch(()=>{});
+        pillLive();
+      })
+      .catch(e=>{ console.error('[cloud] write', e); pill('err','Не сохранилось',''); });
+  };
+  immediate ? doIt() : (CLOUD.pend[pid] = setTimeout(doIt, 350));
+}
+
+/* ---------- создание / удаление проекта ---------- */
+function cloudCreateProject(p){
+  if(!CLOUD.on || !CLOUD.user){
+    state.projects.push(p); currentId=p.id; save(); render();
+    return Promise.resolve();
+  }
+  const u=CLOUD.user, pid=p.id, db=CLOUD.db;
+  CLOUD.roles[pid]='owner';
+  return db.ref('projects/'+pid+'/members/'+u.uid).set({
+      role:'owner', email:u.email||'', name:u.displayName||'', photo:u.photoURL||'',
+      token:'', joinedAt:Date.now()
+    })
+    .then(()=>db.ref('projects/'+pid+'/meta').set({
+      name:p.name||'Проект', ownerUid:u.uid, ownerEmail:u.email||'', createdAt:Date.now()
+    }))
+    .then(()=>{ CLOUD.lastPushed[pid]=JSON.stringify(p);
+                return db.ref('projects/'+pid+'/doc').set(CLOUD.lastPushed[pid]); })
+    .then(()=>db.ref('userIndex/'+u.uid+'/'+pid).set({name:p.name||'Проект', role:'owner', ts:Date.now()}))
+    .then(()=>{ currentId=pid; pillLive(); })
+    .catch(e=>{ console.error('[cloud] create', e);
+                pill('err','Не создалось','');
+                alert('Не удалось создать проект в облаке.\n'+e.message); });
+}
+function cloudDeleteProject(pid){
+  if(!CLOUD.on) return Promise.resolve();
+  const u=CLOUD.user, db=CLOUD.db;
+  if(myRole(pid)==='owner'){
+    return db.ref('projects/'+pid).remove()
+      .then(()=>db.ref('userIndex/'+u.uid+'/'+pid).remove())
+      .catch(e=>{ alert('Не удалось удалить: '+e.message); });
+  }
+  return db.ref('projects/'+pid+'/members/'+u.uid).remove()
+    .then(()=>db.ref('userIndex/'+u.uid+'/'+pid).remove())
+    .catch(e=>{ alert('Не удалось выйти из проекта: '+e.message); });
+}
+
+/* ---------- приглашения ---------- */
+function makeToken(){
+  const a='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let s=''; const r=new Uint8Array(24);
+  (window.crypto||window.msCrypto).getRandomValues(r);
+  for(let i=0;i<r.length;i++) s+=a[r[i]%a.length];
+  return s;
+}
+function createInvite(pid, email, role){
+  const p = state.projects.find(x=>x.id===pid);
+  const token = makeToken();
+  return CLOUD.db.ref('invites/'+token).set({
+    pid: pid,
+    pname: (p&&p.name)||'Проект',
+    role: role||'editor',
+    email: (email||'').trim().toLowerCase(),
+    createdBy: CLOUD.user.uid,
+    createdAt: Date.now(),
+    active: true
+  }).then(()=>token);
+}
+function claimInvite(token){
+  const u=CLOUD.user, db=CLOUD.db;
+  return db.ref('invites/'+token).once('value').then(s=>{
+    const inv=s.val();
+    if(!inv) throw new Error('Ссылка недействительна — приглашение не найдено.');
+    if(inv.active!==true) throw new Error('Приглашение отозвано.');
+    const mine=(u.email||'').toLowerCase();
+    if(inv.email && inv.email!==mine)
+      throw new Error('Приглашение выписано на '+inv.email+', а вы вошли как '+(mine||'—')+'.');
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+        role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
+        photo:u.photoURL||'', token: token, joinedAt: Date.now()
+      })
+      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+        name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
+      }))
+      .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; currentId=inv.pid; return inv; });
+  });
+}
+function openInvites(){
+  const p=proj();
+  if(!p){ alert('Сначала выберите или создайте проект.'); return; }
+  if(!CLOUD.on || !CLOUD.user){ alert('Приглашения работают только после входа через Google.'); return; }
+  document.getElementById('invProjName').textContent = p.name + ' · ваша роль: ' +
+    (myRole(p.id)==='owner'?'владелец':myRole(p.id)==='viewer'?'только чтение':'редактор');
+  document.getElementById('invLinkBox').classList.remove('show');
+  document.getElementById('invEmail').value='';
+  document.getElementById('invOverlay').classList.add('show');
+  renderMembers(p.id);
+}
+function renderMembers(pid){
+  const box=document.getElementById('invMembers');
+  box.textContent='загрузка…';
+  CLOUD.db.ref('projects/'+pid+'/members').once('value').then(s=>{
+    const m=s.val()||{};
+    const keys=Object.keys(m);
+    if(!keys.length){ box.textContent='никого нет'; return; }
+    const iAmOwner = myRole(pid)==='owner';
+    box.innerHTML = keys.map(uid=>{
+      const x=m[uid]||{};
+      const role = x.role==='owner'?'владелец':x.role==='viewer'?'чтение':'редактор';
+      const kick = (iAmOwner && uid!==CLOUD.user.uid)
+        ? '<button class="kick" data-kick="'+uid+'">Отключить</button>' : '';
+      return '<div class="mem">'+
+        (x.photo?'<img src="'+esc(x.photo)+'" alt="">':'<img alt="">')+
+        '<div><div class="nm">'+esc(x.name||'без имени')+'</div><div class="em">'+esc(x.email||'')+'</div></div>'+
+        '<span class="rl '+(x.role==='owner'?'owner':'')+'">'+role+'</span>'+kick+'</div>';
+    }).join('');
+    box.querySelectorAll('[data-kick]').forEach(b=>{
+      b.onclick=()=>{
+        const t=b.dataset.kick;
+        if(!confirm('Отключить участника от проекта?')) return;
+        CLOUD.db.ref('projects/'+pid+'/members/'+t).remove()
+          .then(()=>renderMembers(pid))
+          .catch(e=>alert('Не удалось: '+e.message));
+      };
+    });
+  }).catch(e=>{ box.textContent='нет доступа к списку участников'; console.error(e); });
 }
 let zoom = 1;
 
@@ -565,7 +855,7 @@ function load(){
   }catch(e){}
   return { projects: [] };
 }
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); syncPush(false); }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); pushProject(currentId, false); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function proj(){ return state.projects.find(p=>p.id===currentId); }
@@ -766,10 +1056,18 @@ document.getElementById('tree').addEventListener('click', e=>{
   if(act==='add-v-root'){ openNode({mode:'add', dir:'V', parentPath:[]}); return; }
   if(act==='edit-project'){ openProject(p); return; }
   if(act==='del-project'){
-    if(confirm('Удалить проект «'+p.name+'» со всем деревом?')){
-      state.projects = state.projects.filter(x=>x.id!==p.id);
-      currentId = state.projects[0] ? state.projects[0].id : null;
-      save(); render();
+    const own = (typeof myRole==='function' && myRole(p.id)==='owner');
+    const q = own ? 'Удалить проект «'+p.name+'» со всем деревом? Он исчезнет у всех участников.'
+                  : 'Покинуть проект «'+p.name+'»? Он останется у остальных участников.';
+    if(confirm(q)){
+      const pid=p.id;
+      if(typeof cloudDeleteProject==='function' && CLOUD.on){
+        cloudDeleteProject(pid).then(()=>{ unsubProject(pid); });
+      }else{
+        state.projects = state.projects.filter(x=>x.id!==pid);
+        currentId = state.projects[0] ? state.projects[0].id : null;
+        save(); render();
+      }
     }
     return;
   }
@@ -927,13 +1225,16 @@ document.getElementById('pmSave').onclick = ()=>{
     lead:   document.getElementById('pmLead').value.trim(),
     budget: document.getElementById('pmBudget').value.trim()
   };
+  document.getElementById('projectOverlay').classList.remove('show');
   if(projectEditId){
     Object.assign(state.projects.find(p=>p.id===projectEditId), data);
+    save(); render();
   }else{
     const p = Object.assign({id:uid(), childrenH:[], childrenV:[]}, data);
     state.projects.push(p); currentId = p.id;
+    render();
+    cloudCreateProject(p).then(()=>render());
   }
-  save(); document.getElementById('projectOverlay').classList.remove('show'); render();
 };
 
 /* ---- node modal ---- */
@@ -1022,6 +1323,42 @@ document.getElementById('zoomIn').onclick = ()=>{ zoom=Math.min(1.6,zoom+0.1); a
 document.getElementById('zoomOut').onclick = ()=>{ zoom=Math.max(0.4,zoom-0.1); applyZoom(); };
 document.getElementById('zoomReset').onclick = ()=>{ zoom=1; applyZoom(); };
 
+
+/* ---- invites UI ---- */
+document.getElementById('btnMembers').onclick = openInvites;
+document.getElementById('invClose').onclick = ()=>document.getElementById('invOverlay').classList.remove('show');
+document.getElementById('invOverlay').addEventListener('click', e=>{
+  if(e.target.id==='invOverlay') e.currentTarget.classList.remove('show');
+});
+document.getElementById('invCreate').onclick = ()=>{
+  const p=proj(); if(!p) return;
+  if(myRole(p.id)!=='owner'){ alert('Приглашать может только владелец проекта.'); return; }
+  const em=document.getElementById('invEmail').value.trim();
+  if(em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ alert('Проверьте адрес почты.'); return; }
+  const role=document.getElementById('invRole').value;
+  const btn=document.getElementById('invCreate'); btn.disabled=true; btn.textContent='…';
+  createInvite(p.id, em, role).then(tok=>{
+    const url = location.origin + location.pathname + '?join=' + tok;
+    document.getElementById('invLink').value = url;
+    document.getElementById('invLinkBox').classList.add('show');
+    document.getElementById('invNote').textContent = em
+      ? 'Ссылка сработает только у аккаунта ' + em + '. Отправьте её этому человеку любым способом.'
+      : 'Ссылка сработает у любого, кто войдёт через Google. Не публикуйте её открыто.';
+    btn.disabled=false; btn.textContent='Создать';
+  }).catch(e=>{
+    alert('Не удалось создать приглашение: '+e.message);
+    btn.disabled=false; btn.textContent='Создать';
+  });
+};
+document.getElementById('invCopy').onclick = ()=>{
+  const inp=document.getElementById('invLink');
+  inp.select();
+  const done=()=>{ const b=document.getElementById('invCopy');
+    b.textContent='Скопировано'; setTimeout(()=>b.textContent='Копировать',1500); };
+  if(navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done).catch(()=>{document.execCommand('copy');done();});
+  else { document.execCommand('copy'); done(); }
+};
+
 /* ---- demo ---- */
 document.getElementById('btnDemo').onclick = ()=>{
   const mk = (t,o)=>newNode(Object.assign({title:t},o||{}));
@@ -1065,12 +1402,13 @@ document.getElementById('btnDemo').onclick = ()=>{
   p.childrenH = [f1,f2,f3,f4];
   p.childrenV = [ mk('Управление проектом',{desc:'Еженедельные синки, риски, отчётность',role:'PM',owner:'Кирилл'}) ];
 
-  state.projects.push(p); currentId = p.id; save(); render();
+  state.projects.push(p); currentId = p.id; render();
+  cloudCreateProject(p).then(()=>render());
 };
 
 render();
 applyZoom();
-syncInit();
+cloudInit();
 </script>
 </body>
 </html>
