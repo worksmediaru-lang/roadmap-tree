@@ -72,8 +72,7 @@ input,textarea,select{font-family:inherit}
 }
 
 /* ---------- LAYOUT ---------- */
-.stage{flex:1;overflow:auto;padding:34px 34px 120px;touch-action:manipulation}
-.tree{transform-origin:top center;transition:transform .18s ease;display:flex;justify-content:center;min-width:max-content;margin:0 auto}
+.stage{flex:1;overflow:auto;padding:34px 34px 120px;transition:transform .18s ease;display:flex;justify-content:center;min-width:max-content;margin:0 auto;touch-action:none}
 
 .zoombar{
   position:fixed;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
@@ -366,7 +365,7 @@ body.dragging .drag-hint{display:block}
   .syncpill{font-size:10px;padding:4px 8px}
 
   /* дерево остаётся широким — листаем пальцем в обе стороны */
-  .stage{padding:14px 12px 120px;overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
+  .stage{padding:14px 12px 120px;overflow:auto;-webkit-overflow-scrolling:touch}
   .tree{min-width:max-content}
 
   .card-actions{gap:5px}
@@ -684,6 +683,27 @@ window.FIREBASE_ROOM   = "team";
   .spacer { display: none; }
   .userchip { flex-shrink: 0; }
   .btn[id="btnMembers"] { flex-shrink: 0; }
+}
+
+/* Кнопки зума крупнее на мобиле */
+@media (max-width: 640px) {
+  .zoombar {
+    right: 10px !important;
+    bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 14px;
+  }
+  .zoombar .btn {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    font-size: 18px !important;
+    padding: 0 !important;
+  }
+  .zoombar .lbl {
+    font-size: 12px !important;
+    min-width: 44px !important;
+  }
 }
 </style>
 </head>
@@ -2069,44 +2089,47 @@ document.getElementById('searchClear').addEventListener('click', () => {
 
 
 
-/* ═══════════════ PINCH-ZOOM (надёжный) ═══════════════
-   Работает даже при user-scalable=no
-   ────────────────────────────────────────────────────── */
-(function initPinch(){
+
+
+/* ═══════════════ PINCH-ZOOM (iOS Safari compatible) ═══════════════
+   touch-action:none на stage + non-passive touchmove + preventDefault
+   Браузер отдаёт жест нам, мы сами зумим через applyZoom()
+   ────────────────────────────────────────────────────────────────── */
+(function(){
   var stage = document.getElementById('stage');
-  if(!stage) return;
+  if (!stage) return;
 
-  var _pinchActive = false;
-  var _startDist   = 0;
-  var _startZoom   = 1;
+  var _p    = false;   // pinch активен
+  var _d0   = 0;       // начальное расстояние
+  var _z0   = 1;       // zoom в начале жеста
 
-  function getDist(t){
+  function dist2(t){
     var dx = t[0].clientX - t[1].clientX;
     var dy = t[0].clientY - t[1].clientY;
     return Math.sqrt(dx*dx + dy*dy);
   }
 
   stage.addEventListener('touchstart', function(e){
-    if(e.touches.length === 2){
-      _pinchActive = true;
-      _startDist   = getDist(e.touches);
-      _startZoom   = typeof ZOOM !== 'undefined' ? ZOOM : 1;
-      /* не блокируем default чтобы пан работал */
+    if (e.touches.length === 2){
+      _p  = true;
+      _d0 = dist2(e.touches);
+      _z0 = zoom || 1;
     } else {
-      _pinchActive = false;
+      _p = false;
     }
   }, {passive: true});
 
   stage.addEventListener('touchmove', function(e){
-    if(!_pinchActive || e.touches.length !== 2) return;
-    var dist  = getDist(e.touches);
-    var ratio = dist / _startDist;
-    var next  = Math.min(Math.max(_startZoom * ratio, 0.3), 3);
-    if(typeof applyZoom === 'function') applyZoom(next);
-  }, {passive: true});
+    if (!_p || e.touches.length !== 2) return;
+    e.preventDefault();   // блокируем браузерный зум/скролл
+    var d   = dist2(e.touches);
+    var nxt = Math.min(Math.max(_z0 * (d / _d0), 0.3), 3);
+    zoom = nxt;
+    applyZoom();
+  }, {passive: false});   // ← обязательно false, иначе preventDefault не работает
 
-  stage.addEventListener('touchend', function(e){
-    if(e.touches.length < 2) _pinchActive = false;
+  stage.addEventListener('touchend', function(){
+    if (event.touches.length < 2) _p = false;
   }, {passive: true});
 })();
 
