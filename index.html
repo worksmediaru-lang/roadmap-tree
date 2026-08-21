@@ -531,6 +531,7 @@ window.FIREBASE_ROOM   = "team";
   <span class="userchip" id="userChip" style="display:none"><img id="uPhoto" alt=""><span id="uName"></span><button id="btnSignout">Выйти</button></span>
   <button class="btn ghost sm" id="btnExpand">Развернуть всё</button>
   <button class="btn ghost sm" id="btnCollapse">Свернуть всё</button>
+  <button class="btn sm" id="btnDemo">Демо-проект</button>
   <button class="btn sm" id="btnExport">Экспорт</button>
   <button class="btn sm" id="btnImport">Импорт</button>
 </div>
@@ -1718,6 +1719,7 @@ document.getElementById('invCopy').onclick = ()=>{
 };
 
 /* ---- demo ---- */
+document.getElementById('btnDemo').onclick = ()=>{
   const mk = (t,o)=>newNode(Object.assign({title:t},o||{}));
   const p = {
     id:uid(), name:'AI Academy — запуск обучения по нейросетям',
