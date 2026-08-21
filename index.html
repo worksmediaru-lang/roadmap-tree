@@ -433,6 +433,75 @@ body.dragging .drag-hint{display:block}
   .project-card h2{font-size:16px}
 }
 
+
+/* ═══ ПОИСК ═══ */
+.search-wrap{position:relative;flex:1 1 150px;max-width:250px}
+.search-wrap input{width:100%;padding:7px 26px 7px 11px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.13);
+  color:#fff;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box}
+.search-wrap input::placeholder{color:rgba(255,255,255,.5)}
+.search-wrap input:focus{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4)}
+.srch-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:rgba(255,255,255,.65);font-size:16px;
+  line-height:1;padding:0;display:none}
+.search-wrap input:not(:placeholder-shown)~.srch-clear{display:block}
+mark.hl{background:rgba(91,124,250,.28);border-radius:3px;padding:0 2px;color:inherit}
+.card.srch-hide{display:none!important}
+/* ═══ OVERFLOW MENU ═══ */
+.tb-ovf{position:relative}
+.tb-ovf-btn{padding:6px 11px;font-size:17px;line-height:1;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;cursor:pointer;color:#fff;font-family:inherit}
+.tb-ovf-btn:hover{background:rgba(255,255,255,.24)}
+.ovf-menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;
+  border-radius:12px;box-shadow:0 8px 24px rgba(20,26,40,.18);
+  border:1px solid rgba(20,26,40,.09);min-width:175px;z-index:200;
+  display:none;flex-direction:column;overflow:hidden}
+.ovf-menu.open{display:flex}
+.ovf-menu button{padding:10px 15px;font-size:13px;font-weight:600;text-align:left;
+  background:none;border:none;cursor:pointer;font-family:inherit;color:#1f2430}
+.ovf-menu button:hover{background:#f4f5f7}
+.ovf-sep{height:1px;background:rgba(20,26,40,.07);margin:3px 0}
+/* ═══ ТОСТ ═══ */
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:#1f2430;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;
+  display:flex;align-items:center;gap:12px;z-index:9999;opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;box-shadow:0 4px 16px rgba(20,26,40,.3);
+  white-space:nowrap;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast-undo{background:none;border:none;color:#7b9ef9;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;padding:2px 4px}
+/* ═══ ПРИОРИТЕТ: полоска слева ═══ */
+.card::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;
+  border-radius:0 3px 3px 0;z-index:3;pointer-events:none}
+.card[data-prio="high"]::before{background:#ef6c6c}
+.card[data-prio="medium"]::before{background:#f5a623}
+.card[data-prio="low"]::before{background:#5bc27a}
+/* ═══ ЦВЕТ = СОСТОЯНИЕ ═══ */
+.card.lv0,.card.lv1,.card.lv2,.card.lv3,.card.lv4,.card.lv5{background:initial;border-color:initial}
+.card{background:#fff;border-color:rgba(20,26,40,.09)}
+.card[data-status="done"]{background:#f0faf4;border-color:#b2d8be;opacity:.85;filter:saturate(.4)}
+.card[data-status="in_progress"]{border-color:rgba(91,124,250,.28)}
+.card[data-status="review"]{background:#fdf9ee;border-color:rgba(245,166,35,.32)}
+.card[data-status="planning"]{background:#fafbfc}
+.card.overdue{border-color:#ef6c6c!important;
+  box-shadow:0 0 0 2px rgba(239,108,108,.13),var(--shadow-s)!important}
+/* ═══ КНОПКИ: скрыть до hover ═══ */
+.card-actions{opacity:0;pointer-events:none;transition:opacity .14s}
+.card:hover .card-actions,.card.act-open .card-actions{opacity:1;pointer-events:auto}
+@media (pointer:coarse){.card-actions{opacity:1;pointer-events:auto}}
+/* ═══ МОБИЛЬ 760px ═══ */
+@media (max-width:760px){
+  .search-wrap{flex:1 1 110px;max-width:none}
+  .search-wrap input{font-size:12px;padding:6px 24px 6px 10px}
+  .toast{bottom:calc(66px + env(safe-area-inset-bottom))}
+}
+@media (max-width:480px){
+  .search-wrap{flex:1 1 100%;order:-1}
+}
+/* ═══ REDUCED MOTION ═══ */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{
+  animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 
 <!-- ===== Firebase (compat-сборка: даёт глобальный объект firebase) ===== -->
@@ -519,6 +588,7 @@ window.FIREBASE_ROOM   = "team";
 <div class="topbar">
   <div class="brand">
     <div class="dot"></div>
+  <div class="search-wrap"><input type="search" id="searchInput" placeholder="Поиск…" autocomplete="off" aria-label="Поиск"><button class="srch-clear" id="searchClear" aria-label="Очистить">×</button></div>
     <div>Roadmap Tree<small>планировщик AI-команды</small></div>
   </div>
   <select class="select" id="projectSelect"></select>
@@ -528,13 +598,9 @@ window.FIREBASE_ROOM   = "team";
     <span class="bulb"></span><span id="syncTxt">Локально</span><span class="who" id="syncWho"></span>
   </div>
   <button class="btn sm" id="btnMembers">Участники</button>
+  <div class="tb-ovf" id="tbOvf"><button class="tb-ovf-btn" id="btnOverflow" aria-label="Ещё">⋯</button><div class="ovf-menu" id="ovfMenu"><button id="btnExpand">Развернуть всё</button><button id="btnCollapse">Свернуть всё</button><div class="ovf-sep"></div><button id="btnExport">Экспорт проекта</button><button id="btnExportAll">Экспорт всего</button><button id="btnImport">Импорт</button></div></div>
   <span class="userchip" id="userChip" style="display:none"><img id="uPhoto" alt=""><span id="uName"></span><button id="btnSignout">Выйти</button></span>
-  <button class="btn ghost sm" id="btnExpand">Развернуть всё</button>
-  <button class="btn ghost sm" id="btnCollapse">Свернуть всё</button>
-  <button class="btn sm" id="btnDemo">Демо-проект</button>
-  <button class="btn sm" id="btnExport">Экспорт</button>
-  <button class="btn sm" id="btnImport">Импорт</button>
-</div>
+  </div>
 
 
 <div id="authGate">
@@ -1112,7 +1178,7 @@ function claimGuest(tok){
 }
 function applyGuestUI(){
   const hide = id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; };
-  hide('userChip'); hide('btnMembers'); hide('btnNewProject'); hide('btnDemo');
+  hide('userChip'); hide('btnMembers'); hide('btnNewProject');
   const io=document.getElementById('invOverlay'); if(io) io.classList.remove('show');
 }
 
@@ -1323,7 +1389,7 @@ function renderCard(n, path, level){
   const late = n.deadline && n.status!=='done' && new Date(n.deadline) < new Date(new Date().toDateString());
   const ps = JSON.stringify(path).replace(/"/g,'&quot;');
 
-  return `<div class="card ${lv} ${n.status==='done'?'done':''}" draggable="true" data-path="${ps}">
+  return `<div class="card ${lv} ${n.status==='done'?'done':''}" draggable="true" data-path="${ps}" data-prio="${n.priority||'medium'}" data-status="${n.status||'planning'}">
     <div class="dropzones">
       <div class="dz" data-dz="V" data-path="${ps}">↓ вложить<br>подпунктом</div>
       <div class="dz" data-dz="H" data-path="${ps}">→ вложить<br>подзадачей</div>
@@ -1422,13 +1488,17 @@ document.getElementById('tree').addEventListener('click', e=>{
   else if(act==='toggle'){ node.collapsed = !node.collapsed; save(); render(); }
   else if(act==='done'){ node.status = node.status==='done' ? 'in_progress' : 'done'; save(); render(); }
   else if(act==='del'){
-    if(confirm('Удалить «'+node.title+'» и все вложенные ветки?')){
-      const parentPath = path.slice(0,-1);
-      const last = path[path.length-1];
-      const list = getList(p, parentPath, last.k);
-      list.splice(last.i,1);
-      save(); render();
-    }
+    const snap = JSON.parse(JSON.stringify(p));
+    const title = node.title || 'Без названия';
+    const parentPath = path.slice(0,-1);
+    const last = path[path.length-1];
+    const list = getList(p, parentPath, last.k);
+    list.splice(last.i,1);
+    save(); render();
+    showToast('Удалено: «' + title.slice(0, 30) + (title.length > 30 ? '…' : '') + '»', () => {
+      const idx = state.projects.findIndex(x => x.id === p.id);
+      if (idx >= 0) { state.projects[idx] = snap; currentId = snap.id; save(); render(); }
+    });
   }
   else if(act==='cmt'){
     const body = document.getElementById('cb-'+node.id);
@@ -1629,15 +1699,26 @@ document.addEventListener('keydown', e=>{
 
 /* ---- toolbar ---- */
 document.getElementById('projectSelect').onchange = e=>{ currentId = e.target.value; render(); };
-document.getElementById('btnExpand').onclick = ()=>{ const p=proj(); if(!p)return; allNodes(p).forEach(n=>n.collapsed=false); save(); render(); };
-document.getElementById('btnCollapse').onclick = ()=>{ const p=proj(); if(!p)return; allNodes(p).forEach(n=>n.collapsed=true); save(); render(); };
+document.getElementById('btnExpand').onclick = ()=>{
+  const p=proj(); if(!p) return;
+  (function w(n){n.collapsed=false;n.childrenH.forEach(w);n.childrenV.forEach(w);})(p);
+  save(); render();
+  document.getElementById('ovfMenu').classList.remove('open');
+};
+document.getElementById('btnCollapse').onclick = ()=>{
+  const p=proj(); if(!p) return;
+  (function w(n){if(n.childrenH.length||n.childrenV.length)n.collapsed=true;n.childrenH.forEach(w);n.childrenV.forEach(w);})(p);
+  save(); render();
+  document.getElementById('ovfMenu').classList.remove('open');
+};
 
 document.getElementById('btnExport').onclick = ()=>{
-  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'roadmap-'+new Date().toISOString().slice(0,10)+'.json';
+  const p=proj(); const d=p||state; const nm=p?(p.name||'project'):'all';
+  const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='roadmap-'+nm.replace(/[^\w\u0400-\u04FF]/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();
+  document.getElementById('ovfMenu').classList.remove('open');
 };
 document.getElementById('btnImport').onclick = ()=>document.getElementById('fileInput').click();
 document.getElementById('fileInput').onchange = e=>{
@@ -1718,55 +1799,97 @@ document.getElementById('invCopy').onclick = ()=>{
   else { document.execCommand('copy'); done(); }
 };
 
-/* ---- demo ---- */
-document.getElementById('btnDemo').onclick = ()=>{
-  const mk = (t,o)=>newNode(Object.assign({title:t},o||{}));
-  const p = {
-    id:uid(), name:'AI Academy — запуск обучения по нейросетям',
-    desc:'Полный цикл: от исследования рынка до запуска платформы и первых выпускников.',
-    start:'2026-09-01', end:'2027-03-01', lead:'Продюсер программы', budget:'6 500 000 ₽',
-    childrenH:[], childrenV:[]
-  };
-
-  const f1 = mk('1. Исследование и стратегия',{role:'Продакт',priority:'high',status:'done',deadline:'2026-09-28',owner:'Анна'});
-  f1.childrenV = [
-    mk('Анализ конкурентов',{desc:'Coursera, Яндекс Практикум, DeepLearning.AI',status:'done',owner:'Анна'}),
-    mk('CustDev: 30 интервью',{desc:'Боли, бюджет, формат обучения',status:'done',owner:'Игорь'}),
-    mk('Позиционирование и УТП',{status:'done'})
-  ];
-
-  const f2 = mk('2. Программа обучения',{role:'Методист',priority:'high',deadline:'2026-11-30',owner:'Мария'});
-  const m1 = mk('Модуль 1 — Основы ML',{deadline:'2026-10-15',owner:'Мария',status:'review'});
-  m1.childrenV = [ mk('Математика для ML'), mk('Классические алгоритмы'), mk('Практика: MNIST') ];
-  const m2 = mk('Модуль 2 — Deep Learning',{deadline:'2026-11-10',owner:'Дмитрий'});
-  m2.childrenV = [ mk('CNN и компьютерное зрение'), mk('RNN и трансформеры'), mk('Капстоун-проект') ];
-  const m3 = mk('Модуль 3 — LLM и продакшн',{deadline:'2026-12-20',owner:'Дмитрий',priority:'low'});
-  m3.childrenV = [ mk('Промптинг и RAG'), mk('Fine-tuning'), mk('Деплой и мониторинг') ];
-  f2.childrenH = [m1,m2,m3];
-
-  const f3 = mk('3. Платформа и инфраструктура',{role:'CTO',deadline:'2026-12-15',owner:'Сергей'});
-  f3.childrenV = [
-    mk('Выбор LMS',{status:'done'}),
-    mk('JupyterHub + GPU',{desc:'A100 пул на 50 студентов',priority:'high'}),
-    mk('Оплаты и личный кабинет')
-  ];
-
-  const f4 = mk('4. Маркетинг и запуск',{role:'CMO',deadline:'2027-02-01',owner:'Ольга',priority:'high'});
-  f4.childrenV = [
-    mk('Лендинг и воронка'),
-    mk('Контент-план: 15 статей'),
-    mk('Вебинар-открытие',{deadline:'2027-01-20'})
-  ];
-
-  p.childrenH = [f1,f2,f3,f4];
-  p.childrenV = [ mk('Управление проектом',{desc:'Еженедельные синки, риски, отчётность',role:'PM',owner:'Кирилл'}) ];
-
-  state.projects.push(p); currentId = p.id; render();
-  cloudCreateProject(p).then(()=>render());
-};
+/* demo removed */
 
 render();
 applyZoom();
+
+/* ═══════════════════ ТОСТ ═══════════════════ */
+let _toastTmr = null;
+function showToast(msg, undoFn) {
+  const t = document.getElementById('toast');
+  const tx = document.getElementById('toastTxt');
+  const ub = document.getElementById('toastUndo');
+  clearTimeout(_toastTmr);
+  tx.textContent = msg;
+  ub.style.display = undoFn ? 'inline' : 'none';
+  ub.onclick = () => { t.classList.remove('show'); clearTimeout(_toastTmr); undoFn && undoFn(); };
+  t.classList.add('show');
+  _toastTmr = setTimeout(() => t.classList.remove('show'), 5000);
+}
+
+/* ═══════════════════ OVERFLOW MENU ═══════════════════ */
+document.getElementById('btnOverflow').onclick = e => {
+  e.stopPropagation();
+  document.getElementById('ovfMenu').classList.toggle('open');
+};
+document.addEventListener('click', e => {
+  if (!e.target.closest('#tbOvf')) document.getElementById('ovfMenu').classList.remove('open');
+});
+document.getElementById('btnExportAll').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'roadmap-all-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  document.getElementById('ovfMenu').classList.remove('open');
+};
+document.getElementById('btnImport').onclick = () => {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (d.id || d.childrenH !== undefined) {
+          if (!d.id) d.id = Date.now().toString(36);
+          const ex = state.projects.findIndex(p => p.id === d.id);
+          if (ex >= 0) state.projects[ex] = d; else state.projects.push(d);
+          currentId = d.id;
+        } else if (d.projects) {
+          d.projects.forEach(p => {
+            const ex = state.projects.findIndex(x => x.id === p.id);
+            if (ex >= 0) state.projects[ex] = p; else state.projects.push(p);
+          });
+        }
+        save(); render(); showToast('Импорт выполнен');
+      } catch (ex) { alert('Не удалось импортировать: ' + ex.message); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+  document.getElementById('ovfMenu').classList.remove('open');
+};
+
+/* ═══════════════════ ПОИСК ═══════════════════ */
+let _srchQ = '';
+function applySearch() {
+  const q = _srchQ.toLowerCase().trim();
+  const tree = document.getElementById('tree'); if (!tree) return;
+  tree.querySelectorAll('.card').forEach(card => {
+    const ttl = card.querySelector('.card-title'); if (!ttl) return;
+    if (!q) {
+      card.classList.remove('srch-hide');
+      ttl.innerHTML = esc(ttl.textContent);
+      return;
+    }
+    if (ttl.textContent.toLowerCase().includes(q)) {
+      card.classList.remove('srch-hide');
+      ttl.innerHTML = esc(ttl.textContent).replace(
+        new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'),
+        '<mark class="hl">$1</mark>');
+    } else {
+      card.classList.add('srch-hide');
+    }
+  });
+}
+document.getElementById('searchInput').addEventListener('input', function () {
+  _srchQ = this.value; applySearch();
+});
+document.getElementById('searchClear').addEventListener('click', () => {
+  document.getElementById('searchInput').value = ''; _srchQ = ''; applySearch();
+});
+
 cloudInit();
 
 /* при первом показе проекта подводим вид к корневой плашке */
@@ -1805,5 +1928,6 @@ render = function(){
   window.addEventListener('pointerup', ()=>{ on=false; st.style.cursor=''; });
 })();
 </script>
+<div class="toast" id="toast"><span id="toastTxt"></span><button class="toast-undo" id="toastUndo" style="display:none">Вернуть</button></div>
 </body>
 </html>
