@@ -3,206 +3,947 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roadmap Tree</title>
+<title>Roadmap Tree — планировщик проектов AI-команды</title>
 <style>
-:root{--bg:#7b818b;--bg-2:#f4f5f7;--ink:#1f2430;--ink-2:#5b6474;--ink-3:#8b93a4;--line:#cbd1d9;--accent:#4f6bed;--accent-soft:#e8ecfd;--radius:16px;--shadow-s:0 1px 2px rgba(20,26,40,.06);--shadow-m:0 6px 24px rgba(20,26,40,.10);--card-w:382px;--l0:#dfe8ff;--l1:#dff2e6;--l2:#fdefd8;--l3:#fbe2ee;--l4:#e6e2fb;--l5:#d9f0f5}
+:root{
+  --bg:#7b818b;
+  --bg-2:#f4f5f7;
+  --ink:#1f2430;
+  --ink-2:#5b6474;
+  --ink-3:#8b93a4;
+  --line:#cbd1d9;
+  --accent:#4f6bed;
+  --accent-soft:#e8ecfd;
+  --radius:16px;
+  --shadow-s:0 1px 2px rgba(20,26,40,.06), 0 2px 8px rgba(20,26,40,.05);
+  --shadow-m:0 6px 24px rgba(20,26,40,.10);
+  --card-w:382px;
+
+  --l0:#dfe8ff; --l0b:#b9caf8;
+  --l1:#dff2e6; --l1b:#b3ddc4;
+  --l2:#fdefd8; --l2b:#efd3a3;
+  --l3:#fbe2ee; --l3b:#eabbd3;
+  --l4:#e6e2fb; --l4b:#c5bcf0;
+  --l5:#d9f0f5; --l5b:#a9d8e3;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
-.topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:14px;padding:12px 20px;background:rgba(114,120,130,.94);border-bottom:1px solid rgba(20,26,40,.16)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+body{
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit}
+
+/* ---------- TOP BAR ---------- */
+.topbar{
+  position:sticky;top:0;z-index:60;
+  display:flex;align-items:center;gap:14px;
+  padding:12px 20px;
+  background:rgba(114,120,130,.94);
+  backdrop-filter:saturate(180%) blur(18px);
+  border-bottom:1px solid rgba(20,26,40,.16);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.3px}
+.brand .dot{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#5b7cfa,#8f6bf0);box-shadow:var(--shadow-s)}
+.brand small{display:block;font-weight:500;font-size:11px;color:var(--ink-3);letter-spacing:0}
 .spacer{flex:1}
-.btn{padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:600;background:#fff;border:1px solid rgba(20,26,40,.10);box-shadow:var(--shadow-s);transition:.18s ease;cursor:pointer;font-family:inherit}
+.btn{
+  padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:600;
+  background:#fff;border:1px solid rgba(20,26,40,.10);box-shadow:var(--shadow-s);
+  transition:.18s ease;
+}
 .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-m)}
-.btn.primary{background:linear-gradient(135deg,#5b7cfa,#7b6bf0);color:#fff;border:none}
-.stage{flex:1;overflow:auto;padding:34px}
-.tree{display:flex;justify-content:center;min-width:max-content}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:linear-gradient(135deg,#5b7cfa,#7b6bf0);color:#fff;border-color:transparent}
+.btn.ghost{background:transparent;box-shadow:none}
+.btn.danger{color:#c8384f}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:9px}
+.select{
+  padding:8px 12px;border-radius:10px;font-size:13.5px;font-weight:600;
+  background:#fff;border:1px solid rgba(20,26,40,.10);box-shadow:var(--shadow-s);min-width:200px
+}
+
+/* ---------- LAYOUT ---------- */
+.stage{flex:1;overflow:auto;padding:34px 34px 120px}
+.tree{transform-origin:top center;transition:transform .18s ease;display:flex;justify-content:center;min-width:max-content;margin:0 auto}
+
+.zoombar{
+  position:fixed;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(14px);
+  padding:6px;border-radius:14px;box-shadow:var(--shadow-m);border:1px solid rgba(20,26,40,.07)
+}
+.zoombar .lbl{font-size:12px;color:var(--ink-3);width:44px;text-align:center;font-weight:600}
+
+/* ---------- SUBTREE / CONNECTORS ---------- */
 .subtree{display:flex;flex-direction:column;align-items:center}
 .column{width:var(--card-w);display:flex;flex-direction:column;align-items:stretch}
-.card{width:var(--card-w);border-radius:var(--radius);z-index:2;padding:10px 12px;background:#fff;border:1px solid rgba(20,26,40,.08);box-shadow:var(--shadow-s);transition:transform .16s ease;margin-top:14px}
+
+/* horizontal children (org-chart row) */
+/* ствол от родителя вниз: 18px, затем поперечина, затем 13px до карточки */
+.branch-h{display:flex;justify-content:center;position:relative;padding-top:18px}
+.branch-h::before{content:"";position:absolute;top:0;left:50%;width:2px;height:18px;background:var(--line);transform:translateX(-1px)}
+.h-item{position:relative;padding:20px 9px 0}
+.h-item::before,.h-item::after{content:"";position:absolute;top:0;height:2px;background:var(--line)}
+.h-item::before{right:50%;left:0}
+.h-item::after{left:50%;right:0}
+.h-item:first-child::before{display:none}
+.h-item:last-child::after{display:none}
+.h-stem{position:absolute;top:0;left:50%;width:2px;height:13px;background:var(--line);transform:translateX(-1px)}
+.h-stem::after{content:"";position:absolute;left:-5px;top:13px;
+  border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--line)}
+
+/* vertical children: жёлоб 30px, рельс обрывается на последнем потомке,
+   локоть + остриё стрелки целиком в жёлобе, до плашки остаётся зазор 4px */
+.branch-v{position:relative;margin:0 0 0 24px;padding:12px 0 0 30px}
+.v-item{position:relative;margin-top:10px}
+.v-item:first-child{margin-top:0}
+/* вертикальный отрезок рельса: от предыдущего соседа до своего стыка */
+.v-item > .seg{
+  position:absolute;left:-30px;top:-10px;width:2px;height:32px;
+  background:var(--line);border-radius:2px;z-index:1
+}
+.v-item:first-child > .seg{top:-12px;height:34px}
+/* локоть: горизонтальная перекладина в жёлобе */
+.v-item::before{
+  content:"";position:absolute;left:-30px;top:21px;width:19px;height:2px;
+  background:var(--line);z-index:1
+}
+/* остриё вправо, кончик в -4px — плашку не касается */
+.v-item::after{
+  content:"";position:absolute;left:-11px;top:16px;
+  border-top:6px solid transparent;border-bottom:6px solid transparent;
+  border-left:7px solid var(--line);z-index:1
+}
+
+/* ---------- CARDS ---------- */
+.card{
+  width:var(--card-w);
+  border-radius:var(--radius);
+  z-index:2;
+  padding:10px 12px 9px;
+  background:#fff;
+  border:1px solid rgba(20,26,40,.08);
+  box-shadow:var(--shadow-s);
+  transition:transform .16s ease, box-shadow .16s ease;
+  position:relative;
+}
 .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-m)}
-.card.lv0{background:var(--l0)}.card.lv1{background:var(--l1)}.card.lv2{background:var(--l2)}.card.lv3{background:var(--l3)}.card.lv4{background:var(--l4)}.card.lv5{background:var(--l5)}
-.card.done{filter:saturate(.32);opacity:.78;border:1.5px solid #4caf7d}
-.title{font-size:13.5px;font-weight:700;line-height:1.3}
-.card-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
-.act{font-size:10px;font-weight:700;padding:4px 7px;border-radius:8px;background:rgba(255,255,255,.8);border:1px solid rgba(20,26,40,.11);color:var(--ink-2);cursor:pointer;transition:.15s;font-family:inherit}
-.act:hover{background:#fff}
-.empty{margin:80px auto;text-align:center;color:var(--ink-2);max-width:470px;background:#f4f5f7;border:1px solid rgba(20,26,40,.12);border-radius:20px;padding:34px 28px}
-.modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(24,28,40,.42);backdrop-filter:blur(6px)}
-.modal.show{display:flex}
-.modal-content{width:520px;max-width:100%;background:var(--bg-2);border-radius:20px;padding:22px;box-shadow:0 30px 80px rgba(10,14,25,.35)}
+.card.lv0{background:var(--l0);border-color:var(--l0b)}
+.card.lv1{background:var(--l1);border-color:var(--l1b)}
+.card.lv2{background:var(--l2);border-color:var(--l2b)}
+.card.lv3{background:var(--l3);border-color:var(--l3b)}
+.card.lv4{background:var(--l4);border-color:var(--l4b)}
+.card.lv5{background:var(--l5);border-color:var(--l5b)}
+.card.done{
+  filter:saturate(.32);
+  opacity:.78;
+  border:1.5px solid #4caf7d;
+  box-shadow:0 0 0 3px rgba(76,175,125,.12), var(--shadow-s);
+}
+.card.done .title{text-decoration:line-through;color:var(--ink-2)}
+.card.done:hover{box-shadow:0 0 0 3px rgba(76,175,125,.2), var(--shadow-m)}
+
+/* ---------- INLINE CONTROLS ---------- */
+.mini{
+  appearance:none;-webkit-appearance:none;
+  font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.2px;
+  padding:3px 19px 3px 8px;border-radius:20px;cursor:pointer;outline:none;
+  border:1px solid rgba(20,26,40,.14);color:var(--ink-2);background-color:rgba(255,255,255,.8);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%235b6474' stroke-width='1.6' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:.14s ease;
+}
+.mini:hover{filter:brightness(.97)}
+.mini:focus{box-shadow:0 0 0 3px var(--accent-soft);border-color:var(--accent)}
+.mini.hi{background-color:#ffe1e1;border-color:#f0b6b6;color:#a83440}
+.mini.md{background-color:#ffefd6;border-color:#eccfa2;color:#8d5d18}
+.mini.lo{background-color:#e2ecff;border-color:#bed2f4;color:#3a5fa4}
+.mini.st-planning{background-color:#eceef3;border-color:#ccd2dd;color:#4d5563}
+.mini.st-in_progress{background-color:#e4eafd;border-color:#bfcbf7;color:#3c4f9b}
+.mini.st-review{background-color:#f1e7fb;border-color:#d5c2ef;color:#6b4b9c}
+.mini.st-done{background-color:#dff2e6;border-color:#a9dcc0;color:#2c7a4d}
+
+.done-box{
+  display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none;flex:0 0 auto;
+  font-size:10px;font-weight:800;letter-spacing:.2px;color:var(--ink-2);
+  padding:3px 8px 3px 5px;border-radius:8px;
+  background:rgba(255,255,255,.8);border:1px solid rgba(20,26,40,.14);transition:.14s ease
+}
+.done-box:hover{filter:brightness(.97)}
+.done-box input{
+  appearance:none;-webkit-appearance:none;margin:0;
+  width:13px;height:13px;border-radius:4px;cursor:pointer;
+  border:1.5px solid #9aa3b2;background:#fff;position:relative;transition:.14s ease
+}
+.done-box input:checked{background:#4caf7d;border-color:#3f9d6e}
+.done-box input:checked::after{
+  content:"";position:absolute;left:3.5px;top:1px;width:4px;height:7px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)
+}
+.done-box.on{background:#e4f5eb;border-color:#a9dcc0;color:#2c7a4d}
+.card[draggable="true"]{cursor:grab}
+.card.dragging{opacity:.32;cursor:grabbing}
+
+/* ---------- DRAG & DROP ---------- */
+.dropzones{display:none;position:absolute;inset:0;border-radius:var(--radius);overflow:hidden;z-index:30}
+body.dragging .dropzones{display:flex}
+body.dragging .card.dragging .dropzones{display:none}
+body.dragging .drag-src .dropzones{display:none}
+body.dragging .drag-src > .column > .card{outline:2px dashed var(--accent);outline-offset:3px}
+.dz{
+  flex:1;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.35;
+  font-size:11.5px;font-weight:800;letter-spacing:.2px;color:#3b4252;
+  background:rgba(255,255,255,.85);border:2px dashed rgba(20,26,40,.28);transition:.12s ease
+}
+.dz.over{background:#fff;border-style:solid;border-color:var(--accent);color:var(--accent)}
+.drag-hint{
+  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:70;display:none;
+  background:#2f3646;color:#fff;font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:12px;
+  box-shadow:0 8px 26px rgba(15,20,32,.35)
+}
+body.dragging .drag-hint{display:block}
+
+.card-top{display:flex;align-items:center;gap:8px;min-height:20px}
+.title{font-size:13.5px;font-weight:700;letter-spacing:-.2px;line-height:1.3;flex:1;word-break:break-word}
+.collapse{font-size:10.5px;color:var(--ink-2);padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.75);border:1px solid rgba(20,26,40,.1);font-weight:800}
+.desc{
+  font-size:11.5px;color:var(--ink-2);line-height:1.45;margin-top:4px;word-break:break-word;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.card:hover .desc{-webkit-line-clamp:12}
+
+.meta-row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;margin-top:7px;min-width:0}
+.chips{display:contents}
+.meta-row .chip{min-width:0;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:150px}
+.meta-row .chip.grow{flex:0 1 auto}
+.chip{
+  font-size:10px;font-weight:700;letter-spacing:.2px;
+  padding:3px 7px;border-radius:20px;background:rgba(255,255,255,.75);
+  border:1px solid rgba(20,26,40,.09);color:var(--ink-2);
+  display:inline-flex;align-items:center;gap:3px;white-space:nowrap
+}
+.chip.hi{background:#ffe8e8;border-color:#f5c2c2;color:#b23b3b}
+.chip.md{background:#fff2dd;border-color:#f0d5aa;color:#96631c}
+.chip.lo{background:#e6f0ff;border-color:#c2d6f5;color:#3d63a8}
+.chip.ok{background:#e2f6e8;border-color:#b7e2c5;color:#2f7a4a}
+.chip.prog{background:#e8ecfd;border-color:#c3cdf7;color:#41539d}
+.chip.late{background:#ffe2e2;border-color:#f3b9b9;color:#b8323f}
+
+.card-actions{
+  display:flex;flex-wrap:nowrap;align-items:center;gap:4px;
+  margin-top:8px;padding-top:8px;border-top:1px dashed rgba(20,26,40,.14)
+}
+.act{
+  font-size:10px;font-weight:700;padding:4px 7px;border-radius:8px;white-space:nowrap;
+  background:rgba(255,255,255,.8);border:1px solid rgba(20,26,40,.11);color:var(--ink-2);
+  transition:.15s ease
+}
+.act.ico{padding:4px 6px;font-size:10.5px;line-height:1}
+.act-sep{flex:1 1 auto}
+.act:hover{background:#fff;color:var(--ink);transform:translateY(-1px)}
+.act.add-v{color:#2f7a4a;border-color:#bfe3cc;background:#eaf7ef}
+.act.add-h{color:#41539d;border-color:#c8d2f7;background:#eaeefc}
+.act.del{color:#b8323f;border-color:#f0c3c3;background:#fdeded}
+
+/* comments */
+.cmt{margin:0}
+.cmt-body{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(20,26,40,.14)}
+.cmt-body.open{display:block}
+.cmt-list{max-height:170px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:7px}
+.cmt-one{background:rgba(255,255,255,.8);border:1px solid rgba(20,26,40,.08);border-left:3px solid var(--accent);border-radius:9px;padding:6px 8px}
+.cmt-one .who{font-size:11px;font-weight:800;color:var(--ink)}
+.cmt-one .txt{font-size:12px;color:var(--ink-2);line-height:1.45;margin-top:2px;word-break:break-word}
+.cmt-one .when{font-size:10px;color:var(--ink-3);margin-top:3px}
+.cmt-form{display:flex;gap:5px}
+.cmt-form input{
+  flex:1;font-size:12px;padding:6px 8px;border-radius:9px;
+  border:1px solid rgba(20,26,40,.12);background:#fff;outline:none
+}
+.cmt-form input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.cmt-form button{font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:9px;background:var(--accent-soft);color:#3d51b5;border:1px solid #c6d0f7}
+
+/* ---------- PROJECT HEADER CARD ---------- */
+.project-card{
+  width:640px;max-width:100%;
+  border-radius:20px;padding:20px 22px;
+  background:#59617a;
+  border:1px solid #4a5169;
+  color:#fff;box-shadow:0 6px 22px rgba(25,30,45,.22);
+  position:relative;overflow:hidden
+}
+.project-card::after{content:"";position:absolute;inset:0;pointer-events:none}
+.project-card h2{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.project-card .pdesc{font-size:13px;opacity:.85;margin-top:6px;line-height:1.55;white-space:pre-wrap}
+.pmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}
+.pmeta div{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.14);border-radius:11px;padding:8px 10px}
+.pmeta span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.7px;opacity:.7;font-weight:700}
+.pmeta b{font-size:13px;font-weight:700}
+.pbar{height:6px;border-radius:6px;background:rgba(255,255,255,.2);margin-top:14px;overflow:hidden}
+.pbar i{display:block;height:100%;background:#8fe3c0;border-radius:6px;transition:width .4s ease}
+.pactions{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.pactions .act{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2);color:#fff}
+.pactions .act:hover{background:rgba(255,255,255,.26)}
+
+/* ---------- EMPTY ---------- */
+.empty{margin:80px auto;text-align:center;color:var(--ink-2);max-width:470px;background:#f4f5f7;border:1px solid rgba(20,26,40,.12);border-radius:20px;padding:34px 28px;box-shadow:var(--shadow-m)}
+.empty .ico{font-size:44px;opacity:.5}
+.empty h3{margin:12px 0 6px;color:var(--ink);font-size:18px}
+.empty p{font-size:13.5px;line-height:1.6}
+
+/* ---------- MODAL ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
+  background:rgba(24,28,40,.42);backdrop-filter:blur(6px);padding:20px
+}
+.overlay.show{display:flex}
+.modal{
+  width:520px;max-width:100%;max-height:88vh;overflow:auto;
+  background:var(--bg-2);border-radius:20px;padding:22px;
+  box-shadow:0 30px 80px rgba(10,14,25,.35);border:1px solid rgba(255,255,255,.6);
+  animation:pop .22s ease
+}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.modal h3{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px}
+.modal .sub{font-size:12.5px;color:var(--ink-3);margin-bottom:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .f{margin-bottom:12px}
 .f label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);margin-bottom:5px}
-.f input{width:100%;padding:9px 11px;border-radius:11px;font-size:13.5px;border:1px solid rgba(20,26,40,.13);background:#fff;outline:none;font-family:inherit}
-.f input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.f input,.f textarea,.f select{
+  width:100%;padding:9px 11px;border-radius:11px;font-size:13.5px;
+  border:1px solid rgba(20,26,40,.13);background:#fff;outline:none;transition:.15s
+}
+.f textarea{min-height:78px;resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.modal-foot{display:flex;gap:8px;margin-top:6px}
+.modal-foot .btn{flex:1;justify-content:center;text-align:center}
+
+@media (max-width:760px){
+  :root{--card-w:290px}
+  .card-actions{flex-wrap:wrap}
+  .stage{padding:18px 12px 120px}
+  .row{grid-template-columns:1fr}
+  .topbar{flex-wrap:wrap}
+  .select{min-width:140px;flex:1}
+}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">🎯 Roadmap Tree</div>
-  <select class="btn" id="projectSelect" style="min-width:200px"></select>
+  <div class="brand">
+    <div class="dot"></div>
+    <div>Roadmap Tree<small>планировщик AI-команды</small></div>
+  </div>
+  <select class="select" id="projectSelect"></select>
   <button class="btn primary" id="btnNewProject">+ Проект</button>
   <div class="spacer"></div>
-  <button class="btn" id="btnDemo" style="font-size:12px">Демо</button>
-  <button class="btn" id="btnExport" style="font-size:12px">Экспорт</button>
+  <button class="btn ghost sm" id="btnExpand">Развернуть всё</button>
+  <button class="btn ghost sm" id="btnCollapse">Свернуть всё</button>
+  <button class="btn sm" id="btnDemo">Демо-проект</button>
+  <button class="btn sm" id="btnExport">Экспорт</button>
+  <button class="btn sm" id="btnImport">Импорт</button>
 </div>
 
 <div class="stage" id="stage">
   <div class="tree" id="tree"></div>
 </div>
 
-<div class="modal" id="projectModal">
-  <div class="modal-content">
-    <button style="position:absolute;right:16px;top:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-3)" onclick="document.getElementById('projectModal').classList.remove('show')">✕</button>
-    <h3 style="font-size:18px;font-weight:800;margin-bottom:16px">Новый проект</h3>
-    <div class="f"><label>Название</label><input id="pmName" placeholder="AI Academy" autofocus></div>
-    <div class="f"><label>Описание</label><input id="pmDesc" placeholder="Цель и охват..."></div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn primary" style="flex:1" onclick="saveProject()">Создать</button>
-      <button class="btn" style="flex:1" onclick="document.getElementById('projectModal').classList.remove('show')">Отмена</button>
+<div class="drag-hint">Отпустите карточку на левой половине — станет подпунктом ↓, на правой — подзадачей →</div>
+
+<div class="zoombar">
+  <button class="btn sm" id="zoomOut">−</button>
+  <div class="lbl" id="zoomLbl">100%</div>
+  <button class="btn sm" id="zoomIn">+</button>
+  <button class="btn sm" id="zoomReset">⤢</button>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="overlay" id="projectOverlay">
+  <div class="modal">
+    <h3 id="pmTitle">Новый проект</h3>
+    <div class="sub">Верхний уровень дорожной карты</div>
+    <div class="f"><label>Название *</label><input id="pmName" placeholder="AI Academy — запуск обучения"></div>
+    <div class="f"><label>Описание</label><textarea id="pmDesc" placeholder="Цель, охват, ожидаемый результат…"></textarea></div>
+    <div class="row">
+      <div class="f"><label>Старт</label><input type="date" id="pmStart"></div>
+      <div class="f"><label>Финиш</label><input type="date" id="pmEnd"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Лидер</label><input id="pmLead" placeholder="Имя / роль"></div>
+      <div class="f"><label>Бюджет</label><input id="pmBudget" placeholder="200 000 ₽"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" id="pmSave">Сохранить</button>
+      <button class="btn" id="pmCancel">Отмена</button>
     </div>
   </div>
 </div>
 
-<script>
-const LS_KEY = 'roadmapTree.v1';
-let state = { projects: [] };
-let currentId = null;
-
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
-function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function proj(){return state.projects.find(p=>p.id===currentId)}
-
-function newNode(data){
-  return Object.assign({id:uid(),title:'',desc:'',priority:'medium',status:'in_progress',collapsed:false,children:[]},data)
-}
-
-function render(){
-  renderProjects();
-  const tree=document.getElementById('tree');
-  const p=proj();
-  if(!p){
-    tree.innerHTML=`<div class="empty"><div style="font-size:44px;opacity:.5">🌱</div><h3>Нет проектов</h3><p>Нажми "+ Проект"</p></div>`;
-    return;
-  }
-  const nodes=[];
-  function walk(n){nodes.push(n);if(n.children)n.children.forEach(walk);}
-  if(p.children)p.children.forEach(walk);
-  const done=nodes.filter(n=>n.status==='done').length;
-  const pct=nodes.length?Math.round(done/nodes.length*100):0;
-
-  tree.innerHTML=`<div class="subtree"><div class="column" style="width:640px">
-    <div style="background:#59617a;color:#fff;border-radius:20px;padding:20px;border:1px solid #4a5169">
-      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px">${esc(p.name)}</h2>
-      ${p.desc?`<div style="font-size:13px;opacity:.85;margin-top:6px">${esc(p.desc)}</div>`:''}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-        <div style="background:rgba(255,255,255,.12);border-radius:11px;padding:8px">
-          <div style="font-size:10px;opacity:.7;font-weight:700">Выполнено</div>
-          <div style="font-size:13px;font-weight:700;margin-top:2px">${done}/${nodes.length}</div>
-        </div>
-        <div style="background:rgba(255,255,255,.12);border-radius:11px;padding:8px">
-          <div style="font-size:10px;opacity:.7;font-weight:700">Прогресс</div>
-          <div style="font-size:13px;font-weight:700;margin-top:2px">${pct}%</div>
-        </div>
-      </div>
-      <div style="height:6px;border-radius:6px;background:rgba(255,255,255,.2);margin-top:12px;overflow:hidden"><i style="display:block;height:100%;background:#8fe3c0;width:${pct}%"></i></div>
-      <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2);color:#fff;font-size:12px" onclick="addTask('root','')">+ Задача</button>
+<!-- NODE MODAL -->
+<div class="overlay" id="nodeOverlay">
+  <div class="modal">
+    <h3 id="nmTitle">Новая ветка</h3>
+    <div class="sub" id="nmSub">Заполни карточку</div>
+    <div class="f"><label>Название *</label><input id="nmName" placeholder="Например: Разработка контента"></div>
+    <div class="f"><label>Описание</label><textarea id="nmDesc" placeholder="Что нужно сделать, критерии готовности…"></textarea></div>
+    <div class="row">
+      <div class="f"><label>Дедлайн</label><input type="date" id="nmDeadline"></div>
+      <div class="f"><label>Ответственный</label><input id="nmOwner" placeholder="Имя"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Роль / направление</label><input id="nmRole" placeholder="ML-инженер, методист…"></div>
+      <div class="f"><label>Приоритет</label>
+        <select id="nmPriority">
+          <option value="low">Низкий</option>
+          <option value="medium" selected>Средний</option>
+          <option value="high">Высокий</option>
+        </select>
       </div>
     </div>
-    ${(p.children||[]).map((n,i)=>`<div class="card lv0 ${n.status==='done'?'done':''}">
-      <div class="title">${esc(n.title)}</div>
-      <div class="card-actions">
-        <select class="btn" style="font-size:10px;padding:3px 7px" onchange="updateNode(${i},'status',this.value)">
-          <option value="in_progress" ${n.status==='in_progress'?'selected':''}>В работе</option>
-          <option value="done" ${n.status==='done'?'selected':''}>Готово</option>
-        </select>
-        <button class="act" onclick="deleteTask(${i})">🗑</button>
-        <button class="act" onclick="addSubtask(${i})">+</button>
+    <div class="f"><label>Статус</label>
+      <select id="nmStatus">
+        <option value="planning">Планирование</option>
+        <option value="in_progress" selected>В работе</option>
+        <option value="review">На проверке</option>
+        <option value="done">Готово</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" id="nmSave">Сохранить</button>
+      <button class="btn" id="nmCancel">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json" style="display:none">
+
+<script>
+/* ============ STATE ============ */
+const LS_KEY = 'roadmapTree.v1';
+let state = load();
+let currentId = state.projects[0] ? state.projects[0].id : null;
+let zoom = 1;
+
+// modal context
+let nodeCtx = null; // {mode:'add'|'edit', dir:'v'|'h', parentPath:[], nodePath:[]}
+let projectEditId = null;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { projects: [] };
+}
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function proj(){ return state.projects.find(p=>p.id===currentId); }
+
+/* ============ TREE HELPERS ============
+   node = {id,title,desc,deadline,owner,role,priority,status,collapsed,comments:[],
+           childrenH:[], childrenV:[]}
+   path = array of {k:'H'|'V', i:index} from project root
+========================================= */
+function getNode(p, path){
+  let list = null, node = null, cur = p;
+  for(const step of path){
+    list = step.k==='H' ? (node? node.childrenH : cur.childrenH) : (node? node.childrenV : cur.childrenV);
+    node = list[step.i];
+    if(!node) return null;
+  }
+  return node;
+}
+function getList(p, path, dir){
+  if(path.length===0) return dir==='H' ? p.childrenH : p.childrenV;
+  const n = getNode(p, path);
+  return dir==='H' ? n.childrenH : n.childrenV;
+}
+function newNode(data){
+  return Object.assign({
+    id:uid(), title:'', desc:'', deadline:'', owner:'', role:'',
+    priority:'medium', status:'in_progress', collapsed:false,
+    comments:[], childrenH:[], childrenV:[]
+  }, data);
+}
+function walk(node, fn){
+  fn(node);
+  node.childrenH.forEach(c=>walk(c,fn));
+  node.childrenV.forEach(c=>walk(c,fn));
+}
+function allNodes(p){
+  const out=[];
+  p.childrenH.forEach(c=>walk(c,n=>out.push(n)));
+  p.childrenV.forEach(c=>walk(c,n=>out.push(n)));
+  return out;
+}
+
+/* ============ RENDER ============ */
+function render(){
+  renderProjectSelect();
+  const tree = document.getElementById('tree');
+  const p = proj();
+  if(!p){
+    tree.innerHTML = `<div class="empty">
+      <div class="ico">🌱</div>
+      <h3>Пока нет ни одного проекта</h3>
+      <p>Создай проект кнопкой «+ Проект» сверху или загрузи готовый пример кнопкой «Демо-проект», чтобы посмотреть, как выглядит дерево.</p>
+    </div>`;
+    return;
+  }
+  const nodes = allNodes(p);
+  const done = nodes.filter(n=>n.status==='done').length;
+  const pct = nodes.length ? Math.round(done/nodes.length*100) : 0;
+
+  const head = `
+    <div class="project-card">
+      <div class="dropzones">
+        <div class="dz" data-dz="V">↓ в корень, подпунктом</div>
+        <div class="dz" data-dz="H">→ в корень, направлением</div>
       </div>
-      ${(n.children||[]).length?`<div style="margin-top:8px;padding-left:12px;border-left:2px solid var(--line)">
-        ${n.children.map((c,j)=>`<div style="font-size:11px;padding:4px 0;color:var(--ink-2)">${esc(c.title)}</div>`).join('')}
-      </div>`:''}
-    </div>`).join('')}
-  </div></div>`;
+      <h2>${esc(p.name)}</h2>
+      ${p.desc?`<div class="pdesc">${esc(p.desc)}</div>`:''}
+      <div class="pmeta">
+        ${p.start?`<div><span>Старт</span><b>${esc(p.start)}</b></div>`:''}
+        ${p.end?`<div><span>Финиш</span><b>${esc(p.end)}</b></div>`:''}
+        ${p.lead?`<div><span>Лидер</span><b>${esc(p.lead)}</b></div>`:''}
+        ${p.budget?`<div><span>Бюджет</span><b>${esc(p.budget)}</b></div>`:''}
+        <div><span>Прогресс</span><b>${done} / ${nodes.length} · ${pct}%</b></div>
+      </div>
+      <div class="pbar"><i style="width:${pct}%"></i></div>
+      <div class="pactions">
+        <button class="act" data-act="add-h-root">+ Направление →</button>
+        <button class="act" data-act="add-v-root">+ Пункт ↓</button>
+        <button class="act" data-act="edit-project">Редактировать</button>
+        <button class="act" data-act="del-project">Удалить проект</button>
+      </div>
+    </div>`;
+
+  const rootV = p.childrenV.length ? renderVBranch(p.childrenV, [], 0) : '';
+  const rootH = p.childrenH.length ? renderHBranch(p.childrenH, [], 0) : '';
+
+  tree.innerHTML = `<div class="subtree">
+      <div class="column" style="width:640px;max-width:100%">${head}${rootV}</div>
+      ${rootH}
+    </div>`;
 }
 
-function addTask(level, path){
-  const name=prompt('Название задачи:');
-  if(!name)return;
-  const p=proj();if(!p)return;
-  if(!p.children)p.children=[];
-  p.children.push(newNode({title:name}));
-  save();render();
+function renderHBranch(list, parentPath, level){
+  const items = list.map((n,i)=>{
+    const path = parentPath.concat([{k:'H',i}]);
+    return `<div class="h-item"><div class="h-stem"></div>${renderSubtree(n, path, level)}</div>`;
+  }).join('');
+  return `<div class="branch-h">${items}</div>`;
 }
 
-function addSubtask(idx){
-  const name=prompt('Подзадача:');
-  if(!name)return;
-  const p=proj();if(!p)return;
-  const node=p.children[idx];
-  if(!node.children)node.children=[];
-  node.children.push(newNode({title:name}));
-  save();render();
+function renderVBranch(list, parentPath, level){
+  const items = list.map((n,i)=>{
+    const path = parentPath.concat([{k:'V',i}]);
+    return `<div class="v-item"><i class="seg"></i>${renderSubtree(n, path, level)}</div>`;
+  }).join('');
+  return `<div class="branch-v">${items}</div>`;
 }
 
-function deleteTask(idx){
-  if(!confirm('Удалить?'))return;
-  const p=proj();if(!p)return;
-  p.children.splice(idx,1);
-  save();render();
+function renderSubtree(node, path, level){
+  const card = renderCard(node, path, level);
+  if(node.collapsed) return `<div class="subtree"><div class="column">${card}</div></div>`;
+  const v = node.childrenV.length ? renderVBranch(node.childrenV, path, level+1) : '';
+  const h = node.childrenH.length ? renderHBranch(node.childrenH, path, level+1) : '';
+  return `<div class="subtree"><div class="column">${card}${v}</div>${h}</div>`;
 }
 
-function updateNode(idx,field,val){
-  const p=proj();if(!p)return;
-  if(field==='status')p.children[idx].status=val;
-  save();render();
+function renderCard(n, path, level){
+  const lv = 'lv' + (level % 6);
+  const pKey = {high:'hi',medium:'md',low:'lo'}[n.priority] || 'md';
+  const pTxt = {high:'Высокий',medium:'Средний',low:'Низкий'}[n.priority] || n.priority;
+  const sKey = {done:'ok',in_progress:'prog',review:'',planning:''}[n.status] || '';
+  const sTxt = {planning:'Планирование',in_progress:'В работе',review:'На проверке',done:'Готово'}[n.status] || n.status;
+  const kids = n.childrenH.length + n.childrenV.length;
+  const late = n.deadline && n.status!=='done' && new Date(n.deadline) < new Date(new Date().toDateString());
+  const ps = JSON.stringify(path).replace(/"/g,'&quot;');
+
+  return `<div class="card ${lv} ${n.status==='done'?'done':''}" draggable="true" data-path="${ps}">
+    <div class="dropzones">
+      <div class="dz" data-dz="V" data-path="${ps}">↓ вложить<br>подпунктом</div>
+      <div class="dz" data-dz="H" data-path="${ps}">→ вложить<br>подзадачей</div>
+    </div>
+    <div class="card-top">
+      <div class="title">${esc(n.title)}</div>
+      ${kids?`<button class="collapse" data-act="toggle" data-path="${ps}">${n.collapsed?'+'+kids:'−'}</button>`:''}
+    </div>
+    ${n.desc?`<div class="desc">${esc(n.desc)}</div>`:''}
+    <div class="meta-row">
+      <select class="mini ${pKey}" data-act="set-priority" data-path="${ps}" title="Приоритет">
+        <option value="high"   ${n.priority==='high'?'selected':''}>🔴 Высокий</option>
+        <option value="medium" ${n.priority==='medium'?'selected':''}>🟠 Средний</option>
+        <option value="low"    ${n.priority==='low'?'selected':''}>🔵 Низкий</option>
+      </select>
+      <select class="mini st-${n.status}" data-act="set-status" data-path="${ps}" title="Статус">
+        <option value="planning"    ${n.status==='planning'?'selected':''}>Планирование</option>
+        <option value="in_progress" ${n.status==='in_progress'?'selected':''}>В работе</option>
+        <option value="review"      ${n.status==='review'?'selected':''}>На проверке</option>
+        <option value="done"        ${n.status==='done'?'selected':''}>Готово</option>
+      </select>
+      ${n.owner?`<span class="chip grow" title="Ответственный: ${esc(n.owner)}">👤 ${esc(n.owner)}</span>`:''}
+      ${n.role?`<span class="chip grow" title="Роль: ${esc(n.role)}">🎯 ${esc(n.role)}</span>`:''}
+      ${n.deadline?`<span class="chip ${late?'late':''}" title="Дедлайн">📅 ${esc(n.deadline)}</span>`:''}
+    </div>
+    <div class="card-actions">
+      <button class="act add-v" data-act="add-v" data-path="${ps}" title="Добавить подпункт (вниз)">↓ подпункт</button>
+      <button class="act add-h" data-act="add-h" data-path="${ps}" title="Добавить подзадачу (вбок)">→ подзадача</button>
+      <label class="done-box ${n.status==='done'?'on':''}" title="Отметить выполненным">
+        <input type="checkbox" data-act="set-done" data-path="${ps}" ${n.status==='done'?'checked':''}>
+        Готово
+      </label>
+      <span class="act-sep"></span>
+      <button class="act ico" data-act="cmt" data-path="${ps}" title="Комментарии">💬${n.comments.length?' '+n.comments.length:''}</button>
+      <button class="act ico" data-act="edit" data-path="${ps}" title="Редактировать">✏️</button>
+      <button class="act ico del" data-act="del" data-path="${ps}" title="Удалить">🗑</button>
+    </div>
+    <div class="cmt">
+      <div class="cmt-body" id="cb-${n.id}">
+        <div class="cmt-list">${n.comments.map(c=>`
+          <div class="cmt-one">
+            <div class="who">${esc(c.who)}</div>
+            <div class="txt">${esc(c.txt)}</div>
+            <div class="when">${esc(c.when)}</div>
+          </div>`).join('') || '<div class="when" style="font-size:11px;color:var(--ink-3)">Пока нет комментариев</div>'}
+        </div>
+        <div class="cmt-form">
+          <input id="ci-${n.id}" placeholder="Написать…">
+          <button data-act="cmt-add" data-path="${ps}">→</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
-function renderProjects(){
-  const sel=document.getElementById('projectSelect');
-  sel.innerHTML=state.projects.map(p=>`<option value="${p.id}" ${p.id===currentId?'selected':''}>${esc(p.name)}</option>`).join('');
+function renderProjectSelect(){
+  const sel = document.getElementById('projectSelect');
+  if(!state.projects.length){ sel.innerHTML = '<option>Нет проектов</option>'; return; }
+  sel.innerHTML = state.projects.map(p=>`<option value="${p.id}" ${p.id===currentId?'selected':''}>${esc(p.name)}</option>`).join('');
 }
 
-function saveProject(){
-  const name=document.getElementById('pmName').value.trim();
-  if(!name){alert('Введи название');return;}
-  const p={id:uid(),name,desc:document.getElementById('pmDesc').value.trim(),children:[]};
-  state.projects.push(p);
-  currentId=p.id;
-  save();render();
-  document.getElementById('projectModal').classList.remove('show');
-  document.getElementById('pmName').value='';
-  document.getElementById('pmDesc').value='';
+/* ============ EVENTS ============ */
+document.getElementById('tree').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  const act = btn.dataset.act;
+  const p = proj(); if(!p) return;
+  const path = btn.dataset.path ? JSON.parse(btn.dataset.path) : null;
+
+  if(act==='add-h-root'){ openNode({mode:'add', dir:'H', parentPath:[]}); return; }
+  if(act==='add-v-root'){ openNode({mode:'add', dir:'V', parentPath:[]}); return; }
+  if(act==='edit-project'){ openProject(p); return; }
+  if(act==='del-project'){
+    if(confirm('Удалить проект «'+p.name+'» со всем деревом?')){
+      state.projects = state.projects.filter(x=>x.id!==p.id);
+      currentId = state.projects[0] ? state.projects[0].id : null;
+      save(); render();
+    }
+    return;
+  }
+
+  const node = getNode(p, path);
+  if(!node) return;
+
+  if(act==='add-v'){ openNode({mode:'add', dir:'V', parentPath:path}); }
+  else if(act==='add-h'){ openNode({mode:'add', dir:'H', parentPath:path}); }
+  else if(act==='edit'){ openNode({mode:'edit', nodePath:path}, node); }
+  else if(act==='toggle'){ node.collapsed = !node.collapsed; save(); render(); }
+  else if(act==='done'){ node.status = node.status==='done' ? 'in_progress' : 'done'; save(); render(); }
+  else if(act==='del'){
+    if(confirm('Удалить «'+node.title+'» и все вложенные ветки?')){
+      const parentPath = path.slice(0,-1);
+      const last = path[path.length-1];
+      const list = getList(p, parentPath, last.k);
+      list.splice(last.i,1);
+      save(); render();
+    }
+  }
+  else if(act==='cmt'){
+    const body = document.getElementById('cb-'+node.id);
+    if(body) body.classList.toggle('open');
+  }
+  else if(act==='cmt-add'){
+    const input = document.getElementById('ci-'+node.id);
+    const txt = (input?.value||'').trim();
+    if(!txt) return;
+    node.comments.push({who:'Участник', txt, when:new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})});
+    save(); render();
+    const nb = document.getElementById('cb-'+node.id); if(nb) nb.classList.add('open');
+  }
+});
+
+document.getElementById('tree').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.target.id && e.target.id.startsWith('ci-')){
+    const btn = e.target.parentElement.querySelector('[data-act="cmt-add"]');
+    if(btn) btn.click();
+  }
+});
+
+/* ---- inline controls (status / priority / done) ---- */
+document.getElementById('tree').addEventListener('change', e=>{
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+  if(act!=='set-status' && act!=='set-priority' && act!=='set-done') return;
+  const p = proj(); if(!p) return;
+  const node = getNode(p, JSON.parse(el.dataset.path));
+  if(!node) return;
+
+  if(act==='set-priority') node.priority = el.value;
+  if(act==='set-status')   node.status   = el.value;
+  if(act==='set-done')     node.status   = el.checked ? 'done' : 'in_progress';
+
+  save(); render();
+});
+
+/* ---- drag & drop ---- */
+let dragPath = null;
+const treeEl = document.getElementById('tree');
+
+function isInside(root, node){
+  let found = false;
+  walk(root, n=>{ if(n===node) found = true; });
+  return found;
+}
+function detach(p, node){
+  const rec = list=>{
+    const i = list.indexOf(node);
+    if(i>=0){ list.splice(i,1); return true; }
+    for(const c of list){ if(rec(c.childrenH) || rec(c.childrenV)) return true; }
+    return false;
+  };
+  if(!rec(p.childrenH)) rec(p.childrenV);
+}
+function moveNode(srcPath, dstPath, dir){
+  const p = proj(); if(!p) return;
+  const src = getNode(p, srcPath);
+  const dst = dstPath.length ? getNode(p, dstPath) : null;
+  if(!src) return;
+  if(dst && isInside(src, dst)) return;   // нельзя вложить ветку в саму себя
+  detach(p, src);
+  const list = dst ? (dir==='H' ? dst.childrenH : dst.childrenV)
+                   : (dir==='H' ? p.childrenH   : p.childrenV);
+  list.push(src);
+  if(dst) dst.collapsed = false;
+  save(); render();
+}
+function clearDrag(){
+  dragPath = null;
+  document.body.classList.remove('dragging');
+  document.querySelectorAll('.card.dragging').forEach(el=>el.classList.remove('dragging'));
+  document.querySelectorAll('.drag-src').forEach(el=>el.classList.remove('drag-src'));
+  document.querySelectorAll('.dz.over').forEach(el=>el.classList.remove('over'));
 }
 
-function save(){localStorage.setItem(LS_KEY, JSON.stringify(state))}
-function load(){try{const raw=localStorage.getItem(LS_KEY);return raw?JSON.parse(raw):{projects:[]};}catch(e){return {projects:[]}}}
+treeEl.addEventListener('dragstart', e=>{
+  if(e.target.closest('input,textarea,button,select,label')){ e.preventDefault(); return; }
+  const card = e.target.closest('.card');
+  if(!card || !card.dataset.path) return;
+  dragPath = JSON.parse(card.dataset.path);
+  card.classList.add('dragging');
+  const sub = card.closest('.subtree'); if(sub) sub.classList.add('drag-src');
+  document.body.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try{ e.dataTransfer.setData('text/plain', card.dataset.path); }catch(err){}
+});
+treeEl.addEventListener('dragend', clearDrag);
+treeEl.addEventListener('dragover', e=>{
+  const dz = e.target.closest('.dz');
+  if(!dz || !dragPath) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  dz.classList.add('over');
+});
+treeEl.addEventListener('dragleave', e=>{
+  const dz = e.target.closest('.dz');
+  if(dz) dz.classList.remove('over');
+});
+treeEl.addEventListener('drop', e=>{
+  const dz = e.target.closest('.dz');
+  if(!dz || !dragPath) return;
+  e.preventDefault();
+  const dst = dz.dataset.path ? JSON.parse(dz.dataset.path) : [];
+  const src = dragPath;
+  clearDrag();
+  moveNode(src, dst, dz.dataset.dz);
+});
 
-document.getElementById('projectSelect').onchange=e=>{currentId=e.target.value;render()};
-document.getElementById('btnNewProject').onclick=()=>document.getElementById('projectModal').classList.add('show');
-document.getElementById('btnDemo').onclick=()=>{
-  const demo={id:uid(),name:'AI Academy',desc:'Запуск обучения',children:[
-    {id:uid(),title:'Исследование',children:[{id:uid(),title:'Анализ'},{id:uid(),title:'CustDev'}]},
-    {id:uid(),title:'Разработка',children:[{id:uid(),title:'MVP'},{id:uid(),title:'Тесты'}]}
-  ]};
-  state.projects.push(demo);
-  currentId=demo.id;
-  save();render();
+/* ---- project modal ---- */
+function openProject(p){
+  projectEditId = p ? p.id : null;
+  document.getElementById('pmTitle').textContent = p ? 'Редактировать проект' : 'Новый проект';
+  document.getElementById('pmName').value   = p?p.name:'';
+  document.getElementById('pmDesc').value   = p?p.desc:'';
+  document.getElementById('pmStart').value  = p?p.start:'';
+  document.getElementById('pmEnd').value    = p?p.end:'';
+  document.getElementById('pmLead').value   = p?p.lead:'';
+  document.getElementById('pmBudget').value = p?p.budget:'';
+  document.getElementById('projectOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('pmName').focus(),50);
+}
+document.getElementById('btnNewProject').onclick = ()=>openProject(null);
+document.getElementById('pmCancel').onclick = ()=>document.getElementById('projectOverlay').classList.remove('show');
+document.getElementById('pmSave').onclick = ()=>{
+  const name = document.getElementById('pmName').value.trim();
+  if(!name){ alert('Введите название проекта'); return; }
+  const data = {
+    name,
+    desc:   document.getElementById('pmDesc').value.trim(),
+    start:  document.getElementById('pmStart').value,
+    end:    document.getElementById('pmEnd').value,
+    lead:   document.getElementById('pmLead').value.trim(),
+    budget: document.getElementById('pmBudget').value.trim()
+  };
+  if(projectEditId){
+    Object.assign(state.projects.find(p=>p.id===projectEditId), data);
+  }else{
+    const p = Object.assign({id:uid(), childrenH:[], childrenV:[]}, data);
+    state.projects.push(p); currentId = p.id;
+  }
+  save(); document.getElementById('projectOverlay').classList.remove('show'); render();
 };
-document.getElementById('btnExport').onclick=()=>{
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
-  a.download='roadmap-'+new Date().toISOString().split('T')[0]+'.json';
+
+/* ---- node modal ---- */
+function openNode(ctx, node){
+  nodeCtx = ctx;
+  const isAdd = ctx.mode==='add';
+  document.getElementById('nmTitle').textContent = isAdd ? (ctx.dir==='H' ? 'Новая подзадача →' : 'Новый подпункт ↓') : 'Редактировать ветку';
+  document.getElementById('nmSub').textContent = isAdd
+    ? (ctx.dir==='H' ? 'Ветвление по горизонтали — параллельное направление' : 'Ветвление по вертикали — вложенный пункт списка')
+    : 'Обнови информацию по ветке';
+  document.getElementById('nmName').value     = node?node.title:'';
+  document.getElementById('nmDesc').value     = node?node.desc:'';
+  document.getElementById('nmDeadline').value = node?node.deadline:'';
+  document.getElementById('nmOwner').value    = node?node.owner:'';
+  document.getElementById('nmRole').value     = node?node.role:'';
+  document.getElementById('nmPriority').value = node?node.priority:'medium';
+  document.getElementById('nmStatus').value   = node?node.status:'in_progress';
+  document.getElementById('nodeOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('nmName').focus(),50);
+}
+document.getElementById('nmCancel').onclick = ()=>document.getElementById('nodeOverlay').classList.remove('show');
+document.getElementById('nmSave').onclick = ()=>{
+  const p = proj(); if(!p || !nodeCtx) return;
+  const title = document.getElementById('nmName').value.trim();
+  if(!title){ alert('Введите название'); return; }
+  const data = {
+    title,
+    desc:     document.getElementById('nmDesc').value.trim(),
+    deadline: document.getElementById('nmDeadline').value,
+    owner:    document.getElementById('nmOwner').value.trim(),
+    role:     document.getElementById('nmRole').value.trim(),
+    priority: document.getElementById('nmPriority').value,
+    status:   document.getElementById('nmStatus').value
+  };
+  if(nodeCtx.mode==='add'){
+    const list = getList(p, nodeCtx.parentPath, nodeCtx.dir);
+    list.push(newNode(data));
+    if(nodeCtx.parentPath.length){ const par = getNode(p,nodeCtx.parentPath); if(par) par.collapsed=false; }
+  }else{
+    Object.assign(getNode(p, nodeCtx.nodePath), data);
+  }
+  save(); document.getElementById('nodeOverlay').classList.remove('show'); render();
+};
+
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('show'); });
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show'));
+});
+
+/* ---- toolbar ---- */
+document.getElementById('projectSelect').onchange = e=>{ currentId = e.target.value; render(); };
+document.getElementById('btnExpand').onclick = ()=>{ const p=proj(); if(!p)return; allNodes(p).forEach(n=>n.collapsed=false); save(); render(); };
+document.getElementById('btnCollapse').onclick = ()=>{ const p=proj(); if(!p)return; allNodes(p).forEach(n=>n.collapsed=true); save(); render(); };
+
+document.getElementById('btnExport').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'roadmap-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();
 };
+document.getElementById('btnImport').onclick = ()=>document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!data.projects) throw 0;
+      state = data; currentId = state.projects[0]?state.projects[0].id:null;
+      save(); render(); alert('Импорт выполнен');
+    }catch(err){ alert('Не удалось прочитать файл'); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+};
 
-// Init
-state=load();
-renderProjects();
-if(state.projects.length>0)currentId=state.projects[0].id;
+/* ---- zoom ---- */
+function applyZoom(){
+  document.getElementById('tree').style.transform = 'scale('+zoom+')';
+  document.getElementById('zoomLbl').textContent = Math.round(zoom*100)+'%';
+}
+document.getElementById('zoomIn').onclick = ()=>{ zoom=Math.min(1.6,zoom+0.1); applyZoom(); };
+document.getElementById('zoomOut').onclick = ()=>{ zoom=Math.max(0.4,zoom-0.1); applyZoom(); };
+document.getElementById('zoomReset').onclick = ()=>{ zoom=1; applyZoom(); };
+
+/* ---- demo ---- */
+document.getElementById('btnDemo').onclick = ()=>{
+  const mk = (t,o)=>newNode(Object.assign({title:t},o||{}));
+  const p = {
+    id:uid(), name:'AI Academy — запуск обучения по нейросетям',
+    desc:'Полный цикл: от исследования рынка до запуска платформы и первых выпускников.',
+    start:'2026-09-01', end:'2027-03-01', lead:'Продюсер программы', budget:'6 500 000 ₽',
+    childrenH:[], childrenV:[]
+  };
+
+  const f1 = mk('1. Исследование и стратегия',{role:'Продакт',priority:'high',status:'done',deadline:'2026-09-28',owner:'Анна'});
+  f1.childrenV = [
+    mk('Анализ конкурентов',{desc:'Coursera, Яндекс Практикум, DeepLearning.AI',status:'done',owner:'Анна'}),
+    mk('CustDev: 30 интервью',{desc:'Боли, бюджет, формат обучения',status:'done',owner:'Игорь'}),
+    mk('Позиционирование и УТП',{status:'done'})
+  ];
+
+  const f2 = mk('2. Программа обучения',{role:'Методист',priority:'high',deadline:'2026-11-30',owner:'Мария'});
+  const m1 = mk('Модуль 1 — Основы ML',{deadline:'2026-10-15',owner:'Мария',status:'review'});
+  m1.childrenV = [ mk('Математика для ML'), mk('Классические алгоритмы'), mk('Практика: MNIST') ];
+  const m2 = mk('Модуль 2 — Deep Learning',{deadline:'2026-11-10',owner:'Дмитрий'});
+  m2.childrenV = [ mk('CNN и компьютерное зрение'), mk('RNN и трансформеры'), mk('Капстоун-проект') ];
+  const m3 = mk('Модуль 3 — LLM и продакшн',{deadline:'2026-12-20',owner:'Дмитрий',priority:'low'});
+  m3.childrenV = [ mk('Промптинг и RAG'), mk('Fine-tuning'), mk('Деплой и мониторинг') ];
+  f2.childrenH = [m1,m2,m3];
+
+  const f3 = mk('3. Платформа и инфраструктура',{role:'CTO',deadline:'2026-12-15',owner:'Сергей'});
+  f3.childrenV = [
+    mk('Выбор LMS',{status:'done'}),
+    mk('JupyterHub + GPU',{desc:'A100 пул на 50 студентов',priority:'high'}),
+    mk('Оплаты и личный кабинет')
+  ];
+
+  const f4 = mk('4. Маркетинг и запуск',{role:'CMO',deadline:'2027-02-01',owner:'Ольга',priority:'high'});
+  f4.childrenV = [
+    mk('Лендинг и воронка'),
+    mk('Контент-план: 15 статей'),
+    mk('Вебинар-открытие',{deadline:'2027-01-20'})
+  ];
+
+  p.childrenH = [f1,f2,f3,f4];
+  p.childrenV = [ mk('Управление проектом',{desc:'Еженедельные синки, риски, отчётность',role:'PM',owner:'Кирилл'}) ];
+
+  state.projects.push(p); currentId = p.id; save(); render();
+};
+
 render();
+applyZoom();
 </script>
 </body>
 </html>
