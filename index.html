@@ -72,10 +72,7 @@ input,textarea,select{font-family:inherit}
 }
 
 /* ---------- LAYOUT ---------- */
-.stage{flex:1;overflow:auto;padding:34px 34px 120px;transition:transform .18s ease;display:flex;justify-content:center;min-width:max-content;margin:0 auto;touch-action:none}
-
-.zoombar{
-  position:fixed;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
+.stage{flex:1;overflow:auto;padding:34px 34px 120px;transition:transform .18s ease;display:flex;justify-content:center;min-width:max-content;margin:0 auto;touch-action:pan-x pan-y;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
   background:rgba(255,255,255,.85);backdrop-filter:blur(14px);
   padding:6px;border-radius:14px;box-shadow:var(--shadow-m);border:1px solid rgba(20,26,40,.07)
 }
@@ -704,6 +701,13 @@ window.FIREBASE_ROOM   = "team";
     font-size: 12px !important;
     min-width: 44px !important;
   }
+}
+
+
+@media (max-width:640px){
+  .zoombar{bottom:calc(14px + env(safe-area-inset-bottom)) !important}
+  .zoombar .btn{min-width:44px !important;min-height:44px !important;font-size:20px !important}
+  .zoombar .lbl{font-size:13px !important;min-width:46px !important}
 }
 </style>
 </head>
@@ -2091,48 +2095,46 @@ document.getElementById('searchClear').addEventListener('click', () => {
 
 
 
-/* ═══════════════ PINCH-ZOOM (iOS Safari compatible) ═══════════════
-   touch-action:none на stage + non-passive touchmove + preventDefault
-   Браузер отдаёт жест нам, мы сами зумим через applyZoom()
-   ────────────────────────────────────────────────────────────────── */
+
+
+/* ═══════════════ PINCH-ZOOM ═══════════════
+   - Ловим на document чтобы iOS не перехватил
+   - passive:false + preventDefault на touchmove при pinch
+   - Пишем в глобальный `zoom`, вызываем applyZoom()
+   ─────────────────────────────────────────── */
 (function(){
-  var stage = document.getElementById('stage');
-  if (!stage) return;
+  var _active = false, _d0 = 0, _z0 = 1;
+  function d2t(t){ var dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY; return Math.sqrt(dx*dx+dy*dy); }
 
-  var _p    = false;   // pinch активен
-  var _d0   = 0;       // начальное расстояние
-  var _z0   = 1;       // zoom в начале жеста
+  document.addEventListener('touchstart', function(e){
+    if(e.touches.length===2){
+      /* убедимся что хотя бы один палец на stage */
+      var st=document.getElementById('stage');
+      if(!st) return;
+      var r=st.getBoundingClientRect();
+      var t0=e.touches[0], t1=e.touches[1];
+      var inside = (t0.clientX>=r.left&&t0.clientX<=r.right&&t0.clientY>=r.top&&t0.clientY<=r.bottom)
+                 ||(t1.clientX>=r.left&&t1.clientX<=r.right&&t1.clientY>=r.top&&t1.clientY<=r.bottom);
+      if(!inside) return;
+      _active=true;
+      _d0=d2t(e.touches);
+      _z0=typeof zoom!=='undefined'?zoom:1;
+    } else { _active=false; }
+  },{passive:true});
 
-  function dist2(t){
-    var dx = t[0].clientX - t[1].clientX;
-    var dy = t[0].clientY - t[1].clientY;
-    return Math.sqrt(dx*dx + dy*dy);
-  }
-
-  stage.addEventListener('touchstart', function(e){
-    if (e.touches.length === 2){
-      _p  = true;
-      _d0 = dist2(e.touches);
-      _z0 = zoom || 1;
-    } else {
-      _p = false;
-    }
-  }, {passive: true});
-
-  stage.addEventListener('touchmove', function(e){
-    if (!_p || e.touches.length !== 2) return;
-    e.preventDefault();   // блокируем браузерный зум/скролл
-    var d   = dist2(e.touches);
-    var nxt = Math.min(Math.max(_z0 * (d / _d0), 0.3), 3);
-    zoom = nxt;
+  document.addEventListener('touchmove', function(e){
+    if(!_active||e.touches.length!==2) return;
+    e.preventDefault();
+    var d=d2t(e.touches);
+    var next=Math.min(Math.max(_z0*(d/_d0),0.3),3);
+    zoom=next;
     applyZoom();
-  }, {passive: false});   // ← обязательно false, иначе preventDefault не работает
+  },{passive:false});
 
-  stage.addEventListener('touchend', function(){
-    if (event.touches.length < 2) _p = false;
-  }, {passive: true});
+  document.addEventListener('touchend', function(e){
+    if(e.touches.length<2) _active=false;
+  },{passive:true});
 })();
-
 cloudInit();
 
 /* при первом показе проекта подводим вид к корневой плашке */
