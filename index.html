@@ -854,6 +854,22 @@ function subProject(pid){
   CLOUD.db.ref('projects/'+pid+'/presence').on('value', s=>{
     CLOUD.peers[pid]=s.numChildren(); if(pid===currentId) pillLive();
   });
+  /* Самовосстановление роли владельца: если создатель проекта (meta.ownerUid)
+     видит у себя роль ниже owner — чиним запись в members. */
+  CLOUD.db.ref('projects/'+pid+'/meta/ownerUid').once('value').then(s=>{
+    if(s.val()===CLOUD.user.uid && CLOUD.roles[pid]!=='owner'){
+      const u=CLOUD.user;
+      CLOUD.roles[pid]='owner';
+      CLOUD.db.ref('projects/'+pid+'/members/'+u.uid).set({
+        role:'owner', email:u.email||'', name:u.displayName||'', photo:u.photoURL||'',
+        token:'', joinedAt:Date.now()
+      }).then(()=>{
+        CLOUD.db.ref('userIndex/'+u.uid+'/'+pid+'/role').set('owner').catch(()=>{});
+        try{ renderMembers(pid); }catch(e){}
+        console.log('[cloud] роль владельца восстановлена:', pid);
+      }).catch(err=>console.error('[cloud] не удалось восстановить owner', err));
+    }
+  }).catch(()=>{});
 }
 function unsubProject(pid){
   if(CLOUD.subs[pid]){ CLOUD.subs[pid].off(); delete CLOUD.subs[pid]; }
@@ -1066,14 +1082,23 @@ function claimGuest(tok){
     if(!inv) throw new Error('Приглашение не найдено — ссылка неверна или проект удалён.');
     if(inv.type !== 'guest') throw new Error('Это ссылка для входа через Google, а не гостевая.');
     if(inv.active !== true) throw new Error('Гостевая ссылка отозвана.');
-    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
-        role: inv.role||'viewer', email:'', name:'Гость', photo:'',
-        token: tok, addedVia:'guestLink', joinedAt: Date.now()
-      })
-      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-        name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
-      }))
-      .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; currentId = inv.pid; return inv; });
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).once('value').then(ex=>{
+      const cur = ex.val();
+      if(cur){ /* уже есть в проекте (в т.ч. владелец) — роль не понижаем */
+        CLOUD.roles[inv.pid] = cur.role || 'editor';
+        return db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: cur.role||'editor', ts: Date.now()
+        });
+      }
+      return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+          role: inv.role||'viewer', email:'', name:'Гость', photo:'',
+          token: tok, addedVia:'guestLink', joinedAt: Date.now()
+        })
+        .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
+        }))
+        .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; });
+    }).then(()=>{ currentId = inv.pid; return inv; });
   });
 }
 function applyGuestUI(){
