@@ -974,14 +974,23 @@ function claimInvite(token){
     const mine=(u.email||'').toLowerCase();
     if(inv.email && inv.email!==mine)
       throw new Error('Приглашение выписано на '+inv.email+', а вы вошли как '+(mine||'—')+'.');
-    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
-        role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
-        photo:u.photoURL||'', token: token, joinedAt: Date.now()
-      })
-      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-        name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
-      }))
-      .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; currentId=inv.pid; return inv; });
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).once('value').then(ex=>{
+      const cur = ex.val();
+      if(cur){ /* уже участник в т.ч. владелец — роль не понижаем */
+        CLOUD.roles[inv.pid] = cur.role || 'editor';
+        return db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: cur.role||'editor', ts: Date.now()
+        });
+      }
+      return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+          role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
+          photo:u.photoURL||'', token: token, joinedAt: Date.now()
+        })
+        .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
+        }))
+        .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; });
+    }).then(()=>{ currentId=inv.pid; return inv; });
   });
 }
 /* ---------- знакомые люди из других проектов ---------- */
