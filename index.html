@@ -84,7 +84,7 @@ input,textarea,select{font-family:inherit}
 
 /* ---------- SUBTREE / CONNECTORS ---------- */
 .subtree{display:flex;flex-direction:column;align-items:center}
-.column{width:var(--card-w);display:flex;flex-direction:column;align-items:stretch}
+.column{width:auto;min-width:var(--card-w);display:flex;flex-direction:column;align-items:stretch}
 
 /* horizontal children (org-chart row) */
 /* ствол от родителя вниз: 18px, затем поперечина, затем 13px до карточки */
@@ -97,8 +97,8 @@ input,textarea,select{font-family:inherit}
 .h-item:first-child::before{display:none}
 .h-item:last-child::after{display:none}
 .h-stem{position:absolute;top:0;left:50%;width:2px;height:13px;background:var(--line);transform:translateX(-1px)}
-.h-stem::after{content:"";position:absolute;left:-5px;top:13px;
-  border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--line)}
+.h-stem::after{content:"";position:absolute;left:-5px;top:13px;width:12px;height:7px;
+  background:var(--line);clip-path:polygon(0 0,100% 0,50% 100%)}
 
 /* vertical children: жёлоб 30px, рельс обрывается на последнем потомке,
    локоть + остриё стрелки целиком в жёлобе, до плашки остаётся зазор 4px */
@@ -118,16 +118,15 @@ input,textarea,select{font-family:inherit}
 }
 /* остриё вправо, кончик в -4px — плашку не касается */
 .v-item::after{
-  content:"";position:absolute;left:-10px;top:15px;width:8px;height:8px;
-  background:linear-gradient(to right, var(--line) 60%, transparent);
-  clip-path:polygon(0 30%, 60% 30%, 60% 0%, 100% 50%, 60% 100%, 60% 70%, 0 70%);z-index:1
+  content:"";position:absolute;left:-12px;top:17px;width:8px;height:10px;
+  background:var(--line);clip-path:polygon(0 0,100% 50%,0 100%);z-index:1
 }
 
 /* H-ветки глубоких уровней: вертикальный стек со сдвигом вправо */
 .branch-hv{margin-left:12px}
 .branch-hv > .v-item > .seg,
 .branch-hv > .v-item::before{background:var(--hv-line)}
-.branch-hv > .v-item::after{border-left-color:var(--hv-line)}
+.branch-hv > .v-item::after{background:var(--hv-line)}
 .hv-tag{position:absolute;left:-27px;top:12px;z-index:3;font-size:9px;font-weight:800;
   color:var(--hv-line);pointer-events:none;line-height:1}
 
@@ -341,7 +340,7 @@ body.dragging .drag-hint{display:block}
   .btn,.btn.primary,.btn.sm{padding:8px 12px;font-size:11.5px}
   .select{min-width:120px;padding:8px 10px;font-size:12px}
   .spacer{display:none}
-  .stage{padding:12px 10px 140px;overflow-x:hidden}
+  .stage{padding:12px 10px 140px;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .card{padding:8px 10px}
   .card-actions{flex-wrap:wrap;gap:6px}
   .card-actions .act{padding:5px 8px;font-size:10px}
@@ -353,6 +352,7 @@ body.dragging .drag-hint{display:block}
   .v-item{margin-top:8px}
   .v-item > .seg{left:-24px;height:28px}
   .v-item::before{left:-24px;width:15px;top:19px}
+  .v-item::after{left:-10px;top:15px;width:7px;height:9px}
   #authGate .gate-card{padding:28px 20px;width:94%;border-radius:16px}
   .gate-card h2{font-size:18px}
   .gate-card p{font-size:12px}
@@ -381,6 +381,8 @@ body.dragging .drag-hint{display:block}
   .project-card h2{font-size:15px}
   .branch-v{margin-left:10px;padding:8px 0 0 20px}
   .v-item > .seg{left:-20px;height:24px}
+  .v-item::before{left:-20px;width:12px;top:17px}
+  .v-item::after{left:-9px;top:13px}
 }
 </style>
 
@@ -800,6 +802,18 @@ function subProject(pid){
   const pr = CLOUD.db.ref('projects/'+pid+'/presence/'+CLOUD.sid);
   pr.onDisconnect().remove();
   pr.set({name:(CLOUD.user.displayName||CLOUD.user.email||'—'), ts:Date.now()});
+  CLOUD.db.ref('projects/'+pid+'/meta/ownerUid').once('value').then(s=>{
+    if(s.val()===CLOUD.user.uid && CLOUD.roles[pid]!=='owner'){
+      const u=CLOUD.user;
+      CLOUD.roles[pid]='owner';
+      CLOUD.db.ref('projects/'+pid+'/members/'+u.uid).set({
+        role:'owner', email:u.email||'', name:u.displayName||'', photo:u.photoURL||'',
+        token:'', joinedAt:Date.now()
+      }).catch(()=>{});
+      CLOUD.db.ref('userIndex/'+u.uid+'/'+pid+'/role').set('owner').catch(()=>{});
+      console.log('[cloud] роль владельца восстановлена:', pid);
+    }
+  }).catch(()=>{});
   CLOUD.db.ref('projects/'+pid+'/presence').on('value', s=>{
     CLOUD.peers[pid]=s.numChildren(); if(pid===currentId) pillLive();
   });
@@ -907,14 +921,23 @@ function claimInvite(token){
     const mine=(u.email||'').toLowerCase();
     if(inv.email && inv.email!==mine)
       throw new Error('Приглашение выписано на '+inv.email+', а вы вошли как '+(mine||'—')+'.');
-    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
-        role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
-        photo:u.photoURL||'', token: token, joinedAt: Date.now()
-      })
-      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-        name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
-      }))
-      .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; currentId=inv.pid; return inv; });
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).once('value').then(ex=>{
+      const cur = ex.val();
+      if(cur){
+        CLOUD.roles[inv.pid] = cur.role||'editor';
+        return db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: cur.role||'editor', ts: Date.now()
+        });
+      }
+      return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+          role: inv.role||'editor', email:u.email||'', name:u.displayName||'',
+          photo:u.photoURL||'', token: token, joinedAt: Date.now()
+        })
+        .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: inv.role||'editor', ts: Date.now()
+        }))
+        .then(()=>{ CLOUD.roles[inv.pid]=inv.role||'editor'; });
+    }).then(()=>{ currentId=inv.pid; return inv; });
   });
 }
 /* ---------- знакомые люди из других проектов ---------- */
@@ -1015,14 +1038,23 @@ function claimGuest(tok){
     if(!inv) throw new Error('Приглашение не найдено — ссылка неверна или проект удалён.');
     if(inv.type !== 'guest') throw new Error('Это ссылка для входа через Google, а не гостевая.');
     if(inv.active !== true) throw new Error('Гостевая ссылка отозвана.');
-    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
-        role: inv.role||'viewer', email:'', name:'Гость', photo:'',
-        token: tok, addedVia:'guestLink', joinedAt: Date.now()
-      })
-      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
-        name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
-      }))
-      .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; currentId = inv.pid; return inv; });
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).once('value').then(ex=>{
+      const cur = ex.val();
+      if(cur){ /* уже участник — роль не трогаем */
+        CLOUD.roles[inv.pid] = cur.role||'editor';
+        return db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: cur.role||'editor', ts: Date.now()
+        });
+      }
+      return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+          role: inv.role||'viewer', email:'', name:'Гость', photo:'',
+          token: tok, addedVia:'guestLink', joinedAt: Date.now()
+        })
+        .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+          name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
+        }))
+        .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; });
+    }).then(()=>{ currentId = inv.pid; return inv; });
   });
 }
 function applyGuestUI(){
