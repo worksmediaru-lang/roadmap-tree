@@ -1,45 +1,208 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.3">
-  <style type="text/css">
-    body {background-color: #686e78}
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #181b24; -webkit-text-stroke: #181b24; min-height: 15.0px}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #181b24; -webkit-text-stroke: #181b24}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 11.0px 'Helvetica Neue'; color: #788093; -webkit-text-stroke: #788093}
-    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.5px 'Helvetica Neue'; color: #000000; color: rgba(0, 0, 0, 0.85); -webkit-text-stroke: rgba(0, 0, 0, 0.85); background-color: #ffffff; min-height: 16.0px}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 13.5px 'Helvetica Neue'; color: #ffffff; -webkit-text-stroke: #ffffff}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 11.0px 'Helvetica Neue'; color: #495161; -webkit-text-stroke: #495161; background-color: #ffffff; background-color: rgba(255, 255, 255, 0.1)}
-    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 12.5px 'Helvetica Neue'; color: #000000; color: rgba(0, 0, 0, 0.85); -webkit-text-stroke: rgba(0, 0, 0, 0.85); background-color: #ffffff}
-    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #3fa26a}
-    p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 12.0px 'Helvetica Neue'; color: #788093; -webkit-text-stroke: #788093}
-    p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 12.5px 'Apple Symbols'; color: #000000; color: rgba(0, 0, 0, 0.85); -webkit-text-stroke: rgba(0, 0, 0, 0.85); background-color: #ffffff}
-    span.s1 {font-kerning: none}
-    span.s2 {font-kerning: none; background-color: rgba(95, 100, 111, 0.94)}
-    span.s3 {font: 11.0px '.Apple Color Emoji UI'; font-kerning: none}
-    span.s4 {font: 12.0px '.Apple Color Emoji UI'; font-kerning: none}
-    span.s5 {font-kerning: none; background-color: rgba(255, 255, 255, 0.85)}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap Tree</title>
+<style>
+:root{--bg:#7b818b;--bg-2:#f4f5f7;--ink:#1f2430;--ink-2:#5b6474;--ink-3:#8b93a4;--line:#cbd1d9;--accent:#4f6bed;--accent-soft:#e8ecfd;--radius:16px;--shadow-s:0 1px 2px rgba(20,26,40,.06);--shadow-m:0 6px 24px rgba(20,26,40,.10);--card-w:382px;--l0:#dfe8ff;--l1:#dff2e6;--l2:#fdefd8;--l3:#fbe2ee;--l4:#e6e2fb;--l5:#d9f0f5}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:14px;padding:12px 20px;background:rgba(114,120,130,.94);border-bottom:1px solid rgba(20,26,40,.16)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.spacer{flex:1}
+.btn{padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:600;background:#fff;border:1px solid rgba(20,26,40,.10);box-shadow:var(--shadow-s);transition:.18s ease;cursor:pointer;font-family:inherit}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-m)}
+.btn.primary{background:linear-gradient(135deg,#5b7cfa,#7b6bf0);color:#fff;border:none}
+.stage{flex:1;overflow:auto;padding:34px}
+.tree{display:flex;justify-content:center;min-width:max-content}
+.subtree{display:flex;flex-direction:column;align-items:center}
+.column{width:var(--card-w);display:flex;flex-direction:column;align-items:stretch}
+.card{width:var(--card-w);border-radius:var(--radius);z-index:2;padding:10px 12px;background:#fff;border:1px solid rgba(20,26,40,.08);box-shadow:var(--shadow-s);transition:transform .16s ease;margin-top:14px}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-m)}
+.card.lv0{background:var(--l0)}.card.lv1{background:var(--l1)}.card.lv2{background:var(--l2)}.card.lv3{background:var(--l3)}.card.lv4{background:var(--l4)}.card.lv5{background:var(--l5)}
+.card.done{filter:saturate(.32);opacity:.78;border:1.5px solid #4caf7d}
+.title{font-size:13.5px;font-weight:700;line-height:1.3}
+.card-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.act{font-size:10px;font-weight:700;padding:4px 7px;border-radius:8px;background:rgba(255,255,255,.8);border:1px solid rgba(20,26,40,.11);color:var(--ink-2);cursor:pointer;transition:.15s;font-family:inherit}
+.act:hover{background:#fff}
+.empty{margin:80px auto;text-align:center;color:var(--ink-2);max-width:470px;background:#f4f5f7;border:1px solid rgba(20,26,40,.12);border-radius:20px;padding:34px 28px}
+.modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(24,28,40,.42);backdrop-filter:blur(6px)}
+.modal.show{display:flex}
+.modal-content{width:520px;max-width:100%;background:var(--bg-2);border-radius:20px;padding:22px;box-shadow:0 30px 80px rgba(10,14,25,.35)}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);margin-bottom:5px}
+.f input{width:100%;padding:9px 11px;border-radius:11px;font-size:13.5px;border:1px solid rgba(20,26,40,.13);background:#fff;outline:none;font-family:inherit}
+.f input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+</style>
 </head>
 <body>
-<p class="p1"><span class="s1"><b></b></span><br></p>
-<p class="p2"><span class="s2"><b>Roadmap Tree</b><b></b></span></p>
-<p class="p3"><span class="s2">онлайн-планировщик</span></p>
-<p class="p4"><span class="s1"></span><br></p>
-<p class="p5"><span class="s2">+ Проект</span></p>
-<p class="p1"><span class="s1"></span><br></p>
-<p class="p6"><span class="s3">📡</span><span class="s1"> Синхронизация...</span></p>
-<p class="p7"><span class="s1">Демо</span></p>
-<p class="p7"><span class="s1">Экспорт</span></p>
-<p class="p1"><span class="s1"></span><br></p>
-<p class="p8"><span class="s4">✅</span><span class="s1"> Сохранено</span></p>
-<p class="p7"><span class="s1">−</span></p>
-<p class="p9"><span class="s5">100%</span></p>
-<p class="p7"><span class="s1">+</span></p>
-<p class="p10"><span class="s1">⤢</span></p>
+
+<div class="topbar">
+  <div class="brand">🎯 Roadmap Tree</div>
+  <select class="btn" id="projectSelect" style="min-width:200px"></select>
+  <button class="btn primary" id="btnNewProject">+ Проект</button>
+  <div class="spacer"></div>
+  <button class="btn" id="btnDemo" style="font-size:12px">Демо</button>
+  <button class="btn" id="btnExport" style="font-size:12px">Экспорт</button>
+</div>
+
+<div class="stage" id="stage">
+  <div class="tree" id="tree"></div>
+</div>
+
+<div class="modal" id="projectModal">
+  <div class="modal-content">
+    <button style="position:absolute;right:16px;top:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-3)" onclick="document.getElementById('projectModal').classList.remove('show')">✕</button>
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:16px">Новый проект</h3>
+    <div class="f"><label>Название</label><input id="pmName" placeholder="AI Academy" autofocus></div>
+    <div class="f"><label>Описание</label><input id="pmDesc" placeholder="Цель и охват..."></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn primary" style="flex:1" onclick="saveProject()">Создать</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('projectModal').classList.remove('show')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'roadmapTree.v1';
+let state = { projects: [] };
+let currentId = null;
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function proj(){return state.projects.find(p=>p.id===currentId)}
+
+function newNode(data){
+  return Object.assign({id:uid(),title:'',desc:'',priority:'medium',status:'in_progress',collapsed:false,children:[]},data)
+}
+
+function render(){
+  renderProjects();
+  const tree=document.getElementById('tree');
+  const p=proj();
+  if(!p){
+    tree.innerHTML=`<div class="empty"><div style="font-size:44px;opacity:.5">🌱</div><h3>Нет проектов</h3><p>Нажми "+ Проект"</p></div>`;
+    return;
+  }
+  const nodes=[];
+  function walk(n){nodes.push(n);if(n.children)n.children.forEach(walk);}
+  if(p.children)p.children.forEach(walk);
+  const done=nodes.filter(n=>n.status==='done').length;
+  const pct=nodes.length?Math.round(done/nodes.length*100):0;
+
+  tree.innerHTML=`<div class="subtree"><div class="column" style="width:640px">
+    <div style="background:#59617a;color:#fff;border-radius:20px;padding:20px;border:1px solid #4a5169">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px">${esc(p.name)}</h2>
+      ${p.desc?`<div style="font-size:13px;opacity:.85;margin-top:6px">${esc(p.desc)}</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+        <div style="background:rgba(255,255,255,.12);border-radius:11px;padding:8px">
+          <div style="font-size:10px;opacity:.7;font-weight:700">Выполнено</div>
+          <div style="font-size:13px;font-weight:700;margin-top:2px">${done}/${nodes.length}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.12);border-radius:11px;padding:8px">
+          <div style="font-size:10px;opacity:.7;font-weight:700">Прогресс</div>
+          <div style="font-size:13px;font-weight:700;margin-top:2px">${pct}%</div>
+        </div>
+      </div>
+      <div style="height:6px;border-radius:6px;background:rgba(255,255,255,.2);margin-top:12px;overflow:hidden"><i style="display:block;height:100%;background:#8fe3c0;width:${pct}%"></i></div>
+      <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2);color:#fff;font-size:12px" onclick="addTask('root','')">+ Задача</button>
+      </div>
+    </div>
+    ${(p.children||[]).map((n,i)=>`<div class="card lv0 ${n.status==='done'?'done':''}">
+      <div class="title">${esc(n.title)}</div>
+      <div class="card-actions">
+        <select class="btn" style="font-size:10px;padding:3px 7px" onchange="updateNode(${i},'status',this.value)">
+          <option value="in_progress" ${n.status==='in_progress'?'selected':''}>В работе</option>
+          <option value="done" ${n.status==='done'?'selected':''}>Готово</option>
+        </select>
+        <button class="act" onclick="deleteTask(${i})">🗑</button>
+        <button class="act" onclick="addSubtask(${i})">+</button>
+      </div>
+      ${(n.children||[]).length?`<div style="margin-top:8px;padding-left:12px;border-left:2px solid var(--line)">
+        ${n.children.map((c,j)=>`<div style="font-size:11px;padding:4px 0;color:var(--ink-2)">${esc(c.title)}</div>`).join('')}
+      </div>`:''}
+    </div>`).join('')}
+  </div></div>`;
+}
+
+function addTask(level, path){
+  const name=prompt('Название задачи:');
+  if(!name)return;
+  const p=proj();if(!p)return;
+  if(!p.children)p.children=[];
+  p.children.push(newNode({title:name}));
+  save();render();
+}
+
+function addSubtask(idx){
+  const name=prompt('Подзадача:');
+  if(!name)return;
+  const p=proj();if(!p)return;
+  const node=p.children[idx];
+  if(!node.children)node.children=[];
+  node.children.push(newNode({title:name}));
+  save();render();
+}
+
+function deleteTask(idx){
+  if(!confirm('Удалить?'))return;
+  const p=proj();if(!p)return;
+  p.children.splice(idx,1);
+  save();render();
+}
+
+function updateNode(idx,field,val){
+  const p=proj();if(!p)return;
+  if(field==='status')p.children[idx].status=val;
+  save();render();
+}
+
+function renderProjects(){
+  const sel=document.getElementById('projectSelect');
+  sel.innerHTML=state.projects.map(p=>`<option value="${p.id}" ${p.id===currentId?'selected':''}>${esc(p.name)}</option>`).join('');
+}
+
+function saveProject(){
+  const name=document.getElementById('pmName').value.trim();
+  if(!name){alert('Введи название');return;}
+  const p={id:uid(),name,desc:document.getElementById('pmDesc').value.trim(),children:[]};
+  state.projects.push(p);
+  currentId=p.id;
+  save();render();
+  document.getElementById('projectModal').classList.remove('show');
+  document.getElementById('pmName').value='';
+  document.getElementById('pmDesc').value='';
+}
+
+function save(){localStorage.setItem(LS_KEY, JSON.stringify(state))}
+function load(){try{const raw=localStorage.getItem(LS_KEY);return raw?JSON.parse(raw):{projects:[]};}catch(e){return {projects:[]}}}
+
+document.getElementById('projectSelect').onchange=e=>{currentId=e.target.value;render()};
+document.getElementById('btnNewProject').onclick=()=>document.getElementById('projectModal').classList.add('show');
+document.getElementById('btnDemo').onclick=()=>{
+  const demo={id:uid(),name:'AI Academy',desc:'Запуск обучения',children:[
+    {id:uid(),title:'Исследование',children:[{id:uid(),title:'Анализ'},{id:uid(),title:'CustDev'}]},
+    {id:uid(),title:'Разработка',children:[{id:uid(),title:'MVP'},{id:uid(),title:'Тесты'}]}
+  ]};
+  state.projects.push(demo);
+  currentId=demo.id;
+  save();render();
+};
+document.getElementById('btnExport').onclick=()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
+  a.download='roadmap-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+};
+
+// Init
+state=load();
+renderProjects();
+if(state.projects.length>0)currentId=state.projects[0].id;
+render();
+</script>
 </body>
 </html>
