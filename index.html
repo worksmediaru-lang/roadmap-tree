@@ -72,7 +72,7 @@ input,textarea,select{font-family:inherit}
 }
 
 /* ---------- LAYOUT ---------- */
-.stage{flex:1;overflow:auto;padding:34px 34px 120px;transition:transform .18s ease;display:flex;justify-content:center;min-width:max-content;margin:0 auto;touch-action:pan-x pan-y;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
+.stage{flex:1;overflow:auto;padding:34px 34px 120px;transition:transform .18s ease;display:flex;justify-content:flex-start;margin:0 auto;touch-action:pan-x pan-y;right:20px;bottom:20px;z-index:60;display:flex;gap:6px;align-items:center;
   background:rgba(255,255,255,.85);backdrop-filter:blur(14px);
   padding:6px;border-radius:14px;box-shadow:var(--shadow-m);border:1px solid rgba(20,26,40,.07)
 }
@@ -708,6 +708,59 @@ window.FIREBASE_ROOM   = "team";
   .zoombar{bottom:calc(14px + env(safe-area-inset-bottom)) !important}
   .zoombar .btn{min-width:44px !important;min-height:44px !important;font-size:20px !important}
   .zoombar .lbl{font-size:13px !important;min-width:46px !important}
+}
+
+/* ════ ГАРАНТИРУЕМ ГОРИЗОНТАЛЬНУЮ РАСКЛАДКУ НА ВСЕХ УСТРОЙСТВАХ ════
+   Дерево всегда рендерится как на десктопе — горизонтально.
+   Прокрутка — через overflow:auto на .stage.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Stage: контейнер с прокруткой в обе стороны */
+.stage {
+  overflow: auto !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  display: block !important;
+  padding: 34px 34px 140px !important;
+  /* touch-action:pan-x pan-y — одним пальцем скролл, двумя pinch (JS) */
+  touch-action: pan-x pan-y !important;
+}
+
+/* Tree: размер по содержимому, не сжимается */
+#tree {
+  display: inline-block !important;
+  width: max-content !important;
+  min-width: max-content !important;
+}
+
+/* branch-h: ВСЕГДА горизонтально */
+.branch-h {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  flex-wrap: nowrap !important;
+}
+
+/* h-item: не сжимается */
+.h-item {
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+}
+
+/* Карточка: фиксированная ширина */
+.card {
+  width: var(--card-w, 280px) !important;
+  min-width: var(--card-w, 280px) !important;
+  max-width: var(--card-w, 280px) !important;
+  box-sizing: border-box !important;
+}
+
+/* sub-root: центровка корневого блока */
+.sub-root {
+  display: flex !important;
+  justify-content: center !important;
+  width: max-content !important;
 }
 </style>
 </head>
