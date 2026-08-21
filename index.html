@@ -667,14 +667,7 @@ function cloudInit(){
   const m = location.search.match(/[?&]join=([A-Za-z0-9_-]+)/);
   if(m) CLOUD.pendingInvite = m[1];
   const mg = location.search.match(/[?&]guest=([A-Za-z0-9_-]+)/);
-  if(mg && !CLOUD.user) {
-    console.log('[guest] найдена ссылка, пытаюсь войти...');
-    openGuestAccess(mg[1]).catch(e=>{
-      console.error('[guest] ошибка:',e);
-      alert('Доступ не сработал: '+e.message+'\n\nПроверьте:\n1. Ссылка скопирована правильно\n2. Firebase правила обновлены\n3. Проект ещё существует');
-      location.href=location.pathname;
-    });
-  }
+  if(mg) CLOUD.pendingGuest = mg[1];
 
   document.getElementById('btnGoogle').onclick = ()=>{
     gateErr('');
@@ -702,6 +695,20 @@ function cloudInit(){
   firebase.auth().onAuthStateChanged(u=>{
     CLOUD.user = u;
     if(!u){
+      if(CLOUD.pendingGuest){
+        showGate(false);
+        pill('saving','Открываю по ссылке…','');
+        firebase.auth().signInAnonymously().catch(err=>{
+          console.error('[guest] anon', err);
+          const c=(err&&err.code)||'';
+          CLOUD.pendingGuest=null;
+          showGate(true);
+          gateErr(c.indexOf('operation-not-allowed')>=0
+            ? 'Гостевой вход выключен в Firebase. Владельцу: Authentication → Sign-in method → Anonymous → Enable.'
+            : 'Не удалось открыть по ссылке: '+((err&&err.message)||c));
+        });
+        return;
+      }
       CLOUD.on=false; CLOUD.roles={}; CLOUD.subs={};
       state={projects:[]}; currentId=null;
       try{ render(); }catch(e){}
@@ -718,7 +725,18 @@ function cloudInit(){
     document.getElementById('uName').textContent = u.displayName || u.email || 'аккаунт';
     pill('saving','Загружаю проекты…','');
 
+    if(u.isAnonymous) applyGuestUI();
+
     const go = ()=>watchMyProjects();
+    if(CLOUD.pendingGuest){
+      const gt=CLOUD.pendingGuest; CLOUD.pendingGuest=null;
+      claimGuest(gt)
+        .then(()=>{ history.replaceState({},'',location.pathname); applyGuestUI(); go(); })
+        .catch(e=>{ console.error('[guest]', e);
+          alert('Гостевая ссылка не сработала.\n\n'+e.message);
+          history.replaceState({},'',location.pathname); go(); });
+      return;
+    }
     if(CLOUD.pendingInvite){
       const tok=CLOUD.pendingInvite; CLOUD.pendingInvite=null;
       claimInvite(tok)
@@ -989,48 +1007,28 @@ function createGuestToken(pid, role){
     type:'guest', createdBy:CLOUD.user.uid, createdAt:Date.now(), active:true
   }).then(()=>token);
 }
-function openGuestAccess(tok){
-  // 1) читаем приглашение аноним-запросом (правила позволяют)
-  const anonDB = CLOUD.db.ref('invites/'+tok);
-  return anonDB.once('value').then(s=>{
+function claimGuest(tok){
+  const u = firebase.auth().currentUser, db = CLOUD.db;
+  if(!u) return Promise.reject(new Error('Сессия не создана.'));
+  return db.ref('invites/'+tok).once('value').then(s=>{
     const inv = s.val();
-    console.log('[guest] прочитано приглашение:', inv);
-    if(!inv) throw new Error('Приглашение не найдено в базе');
-    if(inv.type !== 'guest') throw new Error('Это не гостевое приглашение');
-    if(!inv.active) throw new Error('Приглашение отозвано');
-
-    const pid = inv.pid;
-    const guestUid = 'guest_' + tok;
-
-    // 2) ставим себе фейковый uid
-    CLOUD.user = {uid: guestUid, displayName: 'Гость', email: '', photoURL: ''};
-
-    // 3) регистрируемся в members проекта (сервер проверит наличие токена)
-    return CLOUD.db.ref('projects/' + pid + '/members/' + guestUid).once('value').then(ex => {
-      if(ex.val()) {
-        console.log('[guest] уже в members');
-        return;
-      }
-      console.log('[guest] добавляю себя в members');
-      return CLOUD.db.ref('projects/' + pid + '/members/' + guestUid).set({
-        role: inv.role || 'viewer',
-        email: '',
-        name: 'Гость',
-        photo: '',
-        token: tok,
-        addedVia: 'guestLink',
-        joinedAt: Date.now()
-      });
-    });
-  }).then(() => {
-    console.log('[guest] подписываюсь на проекты');
-    watchMyProjects();
-    document.getElementById('authGate').classList.remove('show');
-    document.getElementById('stage').style.display = 'flex';
-    if(document.getElementById('userChip')) document.getElementById('userChip').style.display = 'none';
-    if(document.getElementById('btnMembers')) document.getElementById('btnMembers').style.display = 'none';
-    pill('live', 'Доступ гостя', '');
+    if(!inv) throw new Error('Приглашение не найдено — ссылка неверна или проект удалён.');
+    if(inv.type !== 'guest') throw new Error('Это ссылка для входа через Google, а не гостевая.');
+    if(inv.active !== true) throw new Error('Гостевая ссылка отозвана.');
+    return db.ref('projects/'+inv.pid+'/members/'+u.uid).set({
+        role: inv.role||'viewer', email:'', name:'Гость', photo:'',
+        token: tok, addedVia:'guestLink', joinedAt: Date.now()
+      })
+      .then(()=>db.ref('userIndex/'+u.uid+'/'+inv.pid).set({
+        name: inv.pname||'Проект', role: inv.role||'viewer', ts: Date.now()
+      }))
+      .then(()=>{ CLOUD.roles[inv.pid] = inv.role||'viewer'; currentId = inv.pid; return inv; });
   });
+}
+function applyGuestUI(){
+  const hide = id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; };
+  hide('userChip'); hide('btnMembers'); hide('btnNewProject'); hide('btnDemo');
+  const io=document.getElementById('invOverlay'); if(io) io.classList.remove('show');
 }
 
 function openInvites(){
